@@ -4,7 +4,8 @@ xhrObj.send('');
 eval(xhrObj.responseText);
 
 require.config({
-    baseUrl: "../js/"
+    baseUrl: "../js/",
+    urlArgs: "v=" +  (new Date()).getTime()
 })
 
 var xhrObj = new XMLHttpRequest();

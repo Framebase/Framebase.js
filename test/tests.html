@@ -4,7 +4,6 @@
     <title>fb final testing</title>
 </head>
 <body>
-    <h1>MAKE SURE YOU CLEAR YOUR BROWSER CACHE!</h1>
     <h1>Video Player</h1>
     <div style="float: left">
         <h2>Static</h2>
@@ -29,11 +28,28 @@
         <div id="test2"></div>
     </div>
 
+    <hr style="clear:both;visibility:hidden" />
+
+    <h1>Recorder</h1>
+    <div style="float: left">
+        <h2>Static</h2>
+        <input type="framebase" record="true" id="123" name="123" />
+    </div>
+
+    <div style="float: left">
+        <h2>Dynamic</h2>
+        <div id="test3">N/A</div>
+    </div>
+
+    <hr style="clear:both;visibility:hidden" />
+
+    <div style="padding:10px;">&nbsp</div>
+
 
     <script src="framebase-test.js"></script>
     <script>
         framebase_player();
-        framebase_uploader('xyz');
+        framebase_uploader('7e2d397e7c52137284759831f0bf502fb0ba53865788a12e6759acd0ee39a5fd');
         setTimeout(function(){
             document.getElementById('test1').innerHTML = '<video type="framebase" data-video="test"></video>';
             document.getElementById('test2').innerHTML = '<input type="framebase" id="xyz" name="xyz" />';

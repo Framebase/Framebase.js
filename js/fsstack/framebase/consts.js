@@ -3,16 +3,17 @@ define([], function(){return new (function(){
         location: "//api.framebase.io",
         endpoints: {
             videos: "/videos.json"
-        },
-
-        record: {
-            location: "//record.framebase.io",
-            swf: "//static.framebase.io/swf/record-debug.swf",
-            endpoints: {
-                uploads: '/uploads'
-            }
         }
     };
+
+    this.recorder = {
+        location: "//record.framebase.io",
+        swf: "//static.framebase.io/swf/record-debug.swf",
+        css: "//framebase.io/assets/framebase-js/recorder/css",
+        endpoints: {
+            uploads: '/uploads'
+        }
+    }
 
     this.uploader = {
         js: "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/js/uploader.js",

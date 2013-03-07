@@ -5,8 +5,9 @@ define(['fsstack/framebase/utils/async',
        'fsstack/framebase/consts',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
+       'fsstack/framebase/recorder',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, foreach){return new (function(){
+        function(async, consts, live, polyfills, recorder, foreach){return new (function(){
     this.uploader = function(token, element_or_success_lambda, success_lambda_or_failure_lambda,
                                                 failure_lambda)
     {
@@ -52,6 +53,11 @@ define(['fsstack/framebase/utils/async',
      */
     var framebase_uploader_one = function(token, input_element, success_lambda, error_lambda)
     {
+        // If it's a recording element, pass it off to the recorder
+        if (polyfills.attr(input_element, 'record')) {
+            return recorder.recorder(token, input_element, success_lambda, error_lambda);
+        }
+
         require([consts.uploader.js], function(){
             // Figure out which skin to load
             var skin = polyfills.attr(input_element, 'data-skin');
@@ -143,6 +149,7 @@ define(['fsstack/framebase/utils/async',
                             polyfills.attr(uploader_element, 'value', response['videoID']);
 
                             if (!previously_uploaded) {
+                                previously_uploaded = true;
                                 uploader_element.parentNode.insertBefore(uploader_result, uploader_element.nextSibling);
                             }
 
