@@ -117,9 +117,9 @@ define(['fsstack/framebase/utils/async',
                                     var message_text = '';
                                     if (errors.length === 0) {
                                         message_text += 'An unknown error occured.';
-                                    } else if (errors.length === 1) {
+                                    } else if (errors.length === 1 || typeof(errors) === 'string') {
                                         message_text += "We encountered an error in uploading your file. ";
-                                        message_text += errors[0];
+                                        message_text += (typeof(errors) === 'string')? errors : errors[0];
                                     } else {
                                         message_text += "We encountered the following errors in uploading your file:\n";
                                         for (var i in errors) {
