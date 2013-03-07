@@ -94,7 +94,7 @@ define(['fsstack/framebase/utils/async',
             polyfills.attr(uploader_result, 'type', 'hidden');
             var previously_uploaded = false;
 
-            var uploader = new frame_upload.FineUploader({
+            var uploader = new window['frame_upload'].FineUploader({
                 element: uploader_element,
                 request: {
                     endpoint: consts.api.location + consts.api.endpoints.videos,
@@ -108,7 +108,7 @@ define(['fsstack/framebase/utils/async',
                 callbacks: {
                     onComplete: function(id, fileName, response, xhr){
 
-                        if (response.response !== 200) {
+                        if (response['response'] !== 200) {
 
                             // Set up a default error handler if necessary.
                             if (typeof(error_lambda) === 'undefined') {
@@ -131,7 +131,7 @@ define(['fsstack/framebase/utils/async',
                                 }
                             }
 
-                            error_lambda(response.errors);
+                            error_lambda(response['errors']);
                         } else {
                             // Clone the original properties
                             for (var i=0, attrs=input_element.attributes, l=attrs.length; i<l; i++){

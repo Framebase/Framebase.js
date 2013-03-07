@@ -4,8 +4,8 @@ require(['fsstack/framebase/play',
        'fsstack/framebase/upload'],
        function(play, upload){
 
-        window.framebase_player = play.player;
-        window.framebase_uploader = upload.uploader;
+        window['framebase_player'] = play.player;
+        window['framebase_uploader'] = upload.uploader;
         framebase_done_loading();
 });
 
@@ -28,16 +28,15 @@ require(['fsstack/framebase/play',
             window[queue_item.name].apply(window, queue_item.args);
         }
         queue = {};
-        delete framebase_done_loading;
     }
 
     // Public methods
-    window.framebase_player = function()
+    window['framebase_player'] = function()
     {
         queue_request('framebase_player', Array.prototype.slice.call(arguments));
     }
 
-    window.framebase_uploader = function()
+    window['framebase_uploader'] = function()
     {
         queue_request('framebase_uploader', Array.prototype.slice.call(arguments));
     }

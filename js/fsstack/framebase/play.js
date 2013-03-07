@@ -50,13 +50,11 @@ define(['jquery',
     var framebase_player_one = function(video_object, video_id, success_lambda)
     {
         require([consts.player.js], function(){
-            window.jQuery = jQuery;
-
             // Figure out which skin to load
             var requested_skin = polyfills.attr(video_object, 'data-skin');
             var skin_url = consts.player.css + '/player.min.css';
-            if (typeof(skin) !== 'undefined' && skin !== null && skin.length > 0) {
-                if (validation.is_url(skin)) {
+            if (typeof(requested_skin) !== 'undefined' && requested_skin !== null && requested_skin.length > 0) {
+                if (validation.is_url(requested_skin)) {
                     skin_url = requested_skin;
                 } else {
                     skin_url = consts.player.css + '/player.' + requested_skin + '.min.css';
@@ -84,7 +82,7 @@ define(['jquery',
      */
     var add_player = function(video_object, vdata){
         // Check if transcoding is done TODO: extract this method and call it "addVideo"
-        if(vdata.transcodingInfo.status != 'completed') {
+        if(vdata['transcodingInfo']['status'] != 'completed') {
             var xmlHttp = null;
             if (window.XMLHttpRequest)
             {// code for IE7+, Firefox, Chrome, Opera, Safari
@@ -101,7 +99,7 @@ define(['jquery',
             xmlHttp.onload=function(){
                 vdata = JSON.parse(xmlHttp.responseText);
                 // If already completed, add instantly
-                if(vdata.transcodingInfo.status == 'completed') {
+                if(vdata['transcodingInfo']['status'] == 'completed') {
                     add_player(video_object, vdata);
 
                 }
@@ -128,8 +126,8 @@ define(['jquery',
 
             var video_src = document.createElement('source');
             // User RTMP unless iOS or Android
-            if(iOS || android) video_src.src = vdata.fileUriHttps;
-            else video_src.src = vdata.rtmpUri;
+            if(iOS || android) video_src.src = vdata['fileUriHttps'];
+            else video_src.src = vdata['rtmpUri'];
             video_src.type = "video/mp4";
             video_object.appendChild(video_src);
 

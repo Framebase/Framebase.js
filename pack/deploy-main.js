@@ -1,10 +1,8 @@
 ({
     baseUrl: "../js-inprogress",
-    name: 'fsstack/framebase',
+    name: 'r',
+    include: 'fsstack/framebase',
     out: '../js-inprogress/framebase.out.js',
     optimize: 'none',
-    paths: {
-        "jquery": "r"
-    },
-    insertRequire: ['fsstack/framebase']
+    wrap: true
 })

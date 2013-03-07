@@ -5,9 +5,10 @@ define(['fsstack/framebase/utils/async',
        'fsstack/framebase/consts',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
+       'fsstack/framebase/utils/validation',
        'jquery',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, jQuery, foreach){return new (function(){
+        function(async, consts, live, polyfills, validation, jQuery, foreach){return new (function(){
 
     var is_recorder_init = false;
     /**
@@ -34,8 +35,8 @@ define(['fsstack/framebase/utils/async',
             // Figure out which skin to load
             var requested_skin = polyfills.attr(recorder_element, 'data-skin');
             var skin_url = consts.recorder.css + '/recorder.min.css';
-            if (typeof(skin) !== 'undefined' && skin !== null && skin.length > 0) {
-                if (validation.is_url(skin)) {
+            if (typeof(requested_skin) !== 'undefined' && requested_skin !== null && requested_skin.length > 0) {
+                if (validation.is_url(requested_skin)) {
                     skin_url = requested_skin;
                 } else {
                     skin_url = consts.recorder.css + '/recorder.' + requested_skin + '.min.css';
@@ -76,7 +77,7 @@ define(['fsstack/framebase/utils/async',
             };
 
             // Embed the object
-            var record_object = swfobject.createSWF(embed_attrs, embed_params, initial_id);
+            var record_object = window['swfobject'].createSWF(embed_attrs, embed_params, initial_id);
 
             // Get ready to keep track of the result
             var recorder_result = document.createElement('input');
