@@ -1,4 +1,4 @@
-define(['//dz0073gza0pmo.cloudfront.net/framebase-js/analytics/analytics.js'], function(analytics){return function(config){
+define(['//dz0073gza0pmo.cloudfront.net/framebase-js/analytics/analytics.js'], function(analytics_noop){return function(config){
 
     var default_events = ['video_play', 'video_stop']
 
@@ -26,13 +26,13 @@ define(['//dz0073gza0pmo.cloudfront.net/framebase-js/analytics/analytics.js'], f
     {
         console.log(event, info, this);
         if (checkEnabled(event)) {
-            analytics.track(events[event], info);
+            window['analytics'].track(events[event], info);
         }
     }
 
     this.constructor = function()
     {
-        analytics.initialize(config.get('analytics', 'providers'));
+        window['analytics'].initialize(config.get('analytics', 'providers'));
     }
     this.constructor();
 }})
