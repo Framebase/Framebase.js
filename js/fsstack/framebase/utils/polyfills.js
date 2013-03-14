@@ -20,6 +20,22 @@ define([], function(){return new (function(){
         'usemap': "useMap"
     };
 
+    this.attachEvent = function(target, evt, lambda) {
+        if (typeof(target.addEventListener) !== 'undefined') {
+            target.addEventListener(evt, lambda);
+        } else {
+            target.attachEvent(evt, lambda);
+        }
+    }
+
+    this.isElement = function (o){
+        // Via http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
+        return (
+            typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+            o && typeof o === "object" && o.nodeType === 1 && typeof o.nodeName==="string"
+        );
+    }
+
     var isXMLDoc = function(elem)
     {
         var documentElement = (elem ? elem.ownerDocument || elem : 0).documentElement;

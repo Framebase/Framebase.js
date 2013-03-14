@@ -13,12 +13,8 @@ define(['fsstack/framebase/utils/async',
     var is_recorder_init = false;
     /**
      * Creates a framebase uploader out of a specific element
-     * @param  {string}   token          The API token
-     * @param  {DOM}      input_element  The element to make into an uploader
-     * @param  {callable} success_lambda The function to execute on success
-     * @param  {callable} error_lambda   The function to execute on failure
      */
-    this.recorder = function(token, input_element, success_lambda, error_lambda)
+    this.recorder = function(input_element, config)
     {
         require([consts.common.js.swfobject], function(){
             // TODO:
@@ -59,14 +55,14 @@ define(['fsstack/framebase/utils/async',
 
                 polyfills.attr(recorder_element, key, value);
             }
-            recorder_element.innerHTML = '<div class="fb_record_screen"><div id="' + initial_id + '"></div></div><div class="fb_record_controls" id="' + initial_id + '-controls"></div>';
+            recorder_element.innerHTML = '<div class="fb_record_screen"><div id="' + initial_id + '"></div></div><div id="' + initial_id + '-spinner"></div><div class="fb_record_controls" id="' + initial_id + '-controls"></div>';
 
             input_element.parentNode.replaceChild(recorder_element, input_element);
 
             var embed_attrs = {
                 data: consts.recorder.swf,
-                width: '100%',
-                height: '100%',
+                width: '620',
+                height: '480',
                 id: final_id,
                 name: final_id
             };
@@ -88,19 +84,59 @@ define(['fsstack/framebase/utils/async',
             var record_button;
             var stop_button;
             var save_button;
+            var play_button;
 
             var controls = document.getElementById(initial_id + '-controls');
+            var spinner = document.getElementById(initial_id + '-spinner');
+            var spinner_visible = function(enable)
+            {
+                spinner.innerHTML = enable? '<span></span>' : '';
+            }
+
+            window[initial_id + '-waitStart'] = function()
+            {
+                spinner_visible(true);
+            }
+
+            window[initial_id + '-waitStop'] = function()
+            {
+                spinner_visible(false);
+            }
+
+            window[initial_id + '-cameraDisabled'] = function()
+            {
+                alert('You must have a working camera and enable it for this to work.');
+            }
+
+            window[initial_id + '-microphoneDisabled'] = function()
+            {
+                alert('Your microphone is disabled. No sound will be captured.');
+            }
 
             record_button = make_button('Record', 'record', function(){
                 record_object.startRecord();
+                last_video_id = null;
                 controls.innerHTML = '';
                 controls.appendChild(stop_button);
             });
             var last_video_id = null;
             stop_button = make_button('Stop', 'stop', function(){
-                last_video_id = record_object.stopRecord();
+                if (!last_video_id) {
+                    last_video_id = record_object.stopRecord();
+                } else {
+                    record_object.stopPreview();
+                }
+
                 controls.innerHTML = '';
                 controls.appendChild(record_button);
+                controls.appendChild(play_button);
+                controls.appendChild(save_button);
+            });
+            play_button = make_button('Play', 'play', function(){
+                record_object.playPreview();
+                controls.innerHTML = '';
+                controls.appendChild(record_button);
+                controls.appendChild(stop_button);
                 controls.appendChild(save_button);
             });
             save_button = make_button('Save', 'save', function(){
@@ -108,7 +144,7 @@ define(['fsstack/framebase/utils/async',
                     type: 'POST',
                     url: consts.recorder.location + '/uploads/' + last_video_id + '.json',
                     data: {
-                        token: token
+                        token: config.get('token')
                     },
                     success: function(data)
                     {
@@ -132,20 +168,18 @@ define(['fsstack/framebase/utils/async',
                             recorder_element.parentNode.insertBefore(recorder_result, recorder_element.nextSibling);
                         }
 
-                        if (typeof(success_lambda) !== 'undefined') {
-                            success_lambda(data);
-                        }
+                        config.event(['recorder', 'success'], {}, recorder_element);
                     },
                     error: function(err)
                     {
-                        if (typeof(error_lambda) === 'undefined') {
-                            error_lambda = function(err)
+                        if (!config.has_event(['recorder', 'error'])) {
+                            config.add_event_lambda(['recorder', 'error'], function(err)
                             {
                                 alert('An error occurred while saving the video: ' + err);
-                            }
+                            });
                         }
 
-                        error_lambda();
+                        config.event(['recorder', 'error'], err, recorder_element);
                     }
                 });
 
@@ -159,11 +193,13 @@ define(['fsstack/framebase/utils/async',
 
     var make_button = function(text, css_class, lambda)
     {
+        var div = document.createElement('div');
         var a = document.createElement('a');
         a.innerText = text;
-        polyfills.attr(a, 'class', css_class);
+        polyfills.attr(div, 'class', css_class);
         a.onclick = lambda;
-        return a;
+        div.appendChild(a);
+        return div;
     }
 
 

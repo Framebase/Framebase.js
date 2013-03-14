@@ -53,7 +53,7 @@ define(['fsstack/framebase/utils/validation'],
         } else {
             var css = document.createElement('style');
             css.type = 'text/css';
-            css.innerHTML = location_or_css;
+            css.cssText = location_or_css;
             document.getElementsByTagName('head')[0].appendChild(css);
         }
     }

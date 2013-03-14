@@ -9,22 +9,19 @@ define(['jquery',
        'fsstack/framebase/utils/validation',
        'fsstack/framebase/utils/foreach'],
        function(jQuery, async, consts, live, polyfills, validation, foreach){return new (function(){
-    this.player = function(element_or_success_lambda, video_id, success_lambda)
+    this.player = function(config_or_element, config)
     {
         async.attach_on_page_load(function(){
-            if (typeof(element_or_success_lambda) === 'function' ||
-                typeof(element_or_success_lambda) === 'string' ||
-                typeof(element_or_success_lambda) === 'undefined' ||
-                element_or_success_lambda === null) {
-                framebase_player_all(element_or_success_lambda);
+            if (polyfills.isElement(config_or_element)) {
+                framebase_player_one(config_or_element, config);
             } else {
-                framebase_player_one(element_or_success_lambda, video_id, success_lambda);
+                framebase_player_all(config_or_element);
             }
         });
     }
 
     var player_is_monitoring_document = false;
-    var framebase_player_all = function(success_lambda)
+    var framebase_player_all = function(config)
     {
         if (!player_is_monitoring_document) {
             player_is_monitoring_document = true;
@@ -35,7 +32,7 @@ define(['jquery',
             // Start looking for elements
             live.monitor_dom('video[type=framebase]', function(elem){
                 elem.removeAttribute('type');
-                framebase_player_one(elem, null, success_lambda);
+                framebase_player_one(elem, config);
             });
         }
     }
@@ -44,12 +41,12 @@ define(['jquery',
     /**
      * Initializes a single framebase player on a given object
      * @param  {DOMElement} video_object    The object to replace with a video player
-     * @param  {string}     video_id        The ID of the video to load
-     * @param  {function}   success_lambda  The function to run when the player is successfully loaded
+     * @param  {object}     config          Config describing the object
      */
-    var framebase_player_one = function(video_object, video_id, success_lambda)
+    var framebase_player_one = function(video_object, config)
     {
         require([consts.player.js], function(){
+            window['jQuery'] = jQuery;
             // Figure out which skin to load
             var requested_skin = polyfills.attr(video_object, 'data-skin');
             var skin_url = consts.player.css + '/player.min.css';
@@ -64,14 +61,9 @@ define(['jquery',
             // Load the CSS
             async.load_css(skin_url);
 
-            if (typeof(video_id) === 'undefined' ||
-                video_id === null) {
-                video_id = video_object.getAttribute('data-video');
-            }
-
             // vuhack
             var vdata = {"transcodingInfo" : {"status" : '1'}};
-            add_player(video_object, vdata);
+            add_player(video_object, vdata, config);
         });
     }
 
@@ -80,7 +72,7 @@ define(['jquery',
      * @param {???} video_object ???
      * @param {???} vdata        ???
      */
-    var add_player = function(video_object, vdata){
+    var add_player = function(video_object, vdata, config){
         // Check if transcoding is done TODO: extract this method and call it "addVideo"
         if(vdata['transcodingInfo']['status'] != 'completed') {
             var xmlHttp = null;
@@ -100,16 +92,15 @@ define(['jquery',
                 vdata = JSON.parse(xmlHttp.responseText);
                 // If already completed, add instantly
                 if(vdata['transcodingInfo']['status'] == 'completed') {
-                    add_player(video_object, vdata);
+                    add_player(video_object, vdata, config);
 
                 }
                 // Else recurse and wait 3 seconds
-                else setTimeout(function(){add_player(video_object, vdata)}, 3000);
+                else setTimeout(function(){add_player(video_object, vdata, config)}, 3000);
                 }
                 xmlHttp.open( "GET", url, false);
                 xmlHttp.send( null );
-        }
-        else {
+        } else {
             // Create the video tag
             video_object.width = video_object.width ? video_object.width : 640;
             video_object.height = video_object.height ? video_object.height: (video_object.width/16)*9;
@@ -131,39 +122,97 @@ define(['jquery',
             video_src.type = "video/mp4";
             video_object.appendChild(video_src);
 
-            // TODO Refactor this if / else block
-            if(iOS || android) {
+            var is_done_loading = false;
+            var add_event_listeners = function(me)
+            {
+                var has_played = false;
+                var has_ended = false;
+                var debounce = true;
+                var s_debounce = function(){
+                    debounce = false;
+                    setTimeout(function(){
+                        debounce = true;
+                    }, 100);
+                }
+                me.addEventListener('play', function(){
+                    if (is_done_loading && debounce) {
+                        if (!has_played) {
+                            config.event(['video', 'start'], {}, me);
+                        }
+                        has_ended = false;
+                        has_played = true;
+                        config.event(['video', 'play'], {
+                            time: me.currentTime
+                        }, me);
+                        s_debounce();
+                    }
+                });
 
-                jQuery(video_object).mediaelementplayer({
-                    plugins: ['flash', 'silverlight', 'html5'],
-                    pluginPath: consts.player.plugins,
-                    success: function(media, node, player){
-                        if (polyfills.attr(media, 'data-controls') == 'none') player.controls[0].style.display = 'none';
-                        else if (polyfills.attr(media, 'data-controls') == 'hideOnStart') player.hideControls(false);
+                me.addEventListener('pause', function(){
+                    if (is_done_loading && debounce) {
+                        config.event(['video', 'pause'], {
+                            time: me.currentTime
+                        }, me);
+                        s_debounce();
+                    }
+                });
+
+                me.addEventListener('ended', function(){
+                    if (is_done_loading && debounce) {
+                        has_ended = true;
+                        has_played = false;
+                        config.event(['video', 'stop'], {complete: true}, me);
+                        s_debounce();
+                    }
+                });
+
+                polyfills.attachEvent(window, 'onbeforeunload', function(evt){
+                    if (is_done_loading && debounce) {
+                        if (!has_ended && has_played) {
+                            config.event(['video', 'stop'], {complete: false, time: me.currentTime}, me);
+                        }
+                        s_debounce();
                     }
                 });
             }
 
-            else {
-                jQuery(video_object).mediaelementplayer({
-                    mode: "shim",
-                    plugins: ['flash', 'silverlight', 'html5'],
-                    pluginPath: consts.player.plugins,
-                    preload: true,
-                    success: function(media, node, player) {
-                     if (media.pluginType != 'native') {
-                         media.play();
-                         var playedOnce = 0;
-                         media.addEventListener('play',function(){
-                            if(!playedOnce) media.pause();
-                            playedOnce = 1;
-                         })
-                        if (polyfills.attr(media, 'data-controls') == 'none') player.controls[0].style.display = 'none';
-                        else if (polyfills.attr(media, 'data-controls') == 'hideOnStart') player.hideControls(false);
-                     }
-                 }
-                });
+            var media_config = {
+                plugins: ['flash', 'silverlight', 'html5'],
+                pluginPath: consts.player.plugins,
+                preload: true,
+                pauseOtherPlayers: false,
+                success: function(media, node, player) {
+                    if (media.pluginType != 'native') {
+                        media.play();
+                        var playedOnce = false;
+                        media.addEventListener('play',function(){
+                            if (!playedOnce) {
+                                media.pause();
+                            }
+
+                            playedOnce = true;
+
+                            setTimeout(function(){
+                                is_done_loading = true;
+                            }, 300);
+                        })
+
+                        if (polyfills.attr(media, 'data-controls') == 'none') {
+                            player.controls[0].style.display = 'none';
+                        } else if (polyfills.attr(media, 'data-controls') == 'hideOnStart') {
+                            player.hideControls(false);
+                        }
+
+                        add_event_listeners(media);
+                    }
+                }
+            };
+
+            if (!(iOS || android)) {
+                media_config['mode'] = 'shim';
             }
+
+            jQuery(video_object).mediaelementplayer(media_config);
         }
     }
 })()});

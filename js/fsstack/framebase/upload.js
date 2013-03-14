@@ -8,17 +8,13 @@ define(['fsstack/framebase/utils/async',
        'fsstack/framebase/recorder',
        'fsstack/framebase/utils/foreach'],
         function(async, consts, live, polyfills, recorder, foreach){return new (function(){
-    this.uploader = function(token, element_or_success_lambda, success_lambda_or_failure_lambda,
-                                                failure_lambda)
+    this.uploader = function(config_or_element, config)
     {
         async.attach_on_page_load(function(){
-            if (typeof(element_or_success_lambda) === 'function' ||
-                typeof(element_or_success_lambda) === 'string' ||
-                typeof(element_or_success_lambda) === 'undefined' ||
-                element_or_success_lambda === null) {
-                framebase_uploader_all(token, element_or_success_lambda, success_lambda_or_failure_lambda);
+            if (polyfills.isElement(config_or_element)) {
+                framebase_uploader_one(config_or_element, config);
             } else {
-                framebase_uploader_one(token, element_or_success_lambda, success_lambda_or_failure_lambda, failure_lambda);
+                framebase_uploader_all(config_or_element);
             }
         });
     }
@@ -28,7 +24,7 @@ define(['fsstack/framebase/utils/async',
      * Converts all <input type="framebase"> elements to framebase uploaders
      * @param  {string} token The API token
      */
-    var framebase_uploader_all = function(token, success_lambda, failure_lambda)
+    var framebase_uploader_all = function(config)
     {
         if (!uploader_is_monitoring_document) {
             uploader_is_monitoring_document = true;
@@ -38,7 +34,7 @@ define(['fsstack/framebase/utils/async',
 
             // Start looking for elements
             live.monitor_dom('input[type=framebase]', function(elem){
-                framebase_uploader_one(token, elem, success_lambda, failure_lambda);
+                framebase_uploader_one(elem, config);
             });
         }
     }
@@ -46,32 +42,30 @@ define(['fsstack/framebase/utils/async',
     var is_uploader_init = false;
     /**
      * Creates a framebase uploader out of a specific element
-     * @param  {string}   token          The API token
      * @param  {DOM}      input_element  The element to make into an uploader
-     * @param  {callable} success_lambda The function to execute on success
-     * @param  {callable} error_lambda   The function to execute on failure
+     * @param  {object}   config         The config object
      */
-    var framebase_uploader_one = function(token, input_element, success_lambda, error_lambda)
+    var framebase_uploader_one = function(input_element, config)
     {
         // If it's a recording element, pass it off to the recorder
         if (polyfills.attr(input_element, 'record')) {
-            return recorder.recorder(token, input_element, success_lambda, error_lambda);
+            return recorder.recorder(input_element, config);
         }
 
         require([consts.uploader.js], function(){
             // Figure out which skin to load
-            var skin = polyfills.attr(input_element, 'data-skin');
+            var requested_skin = polyfills.attr(input_element, 'data-skin');
+            var skin_url = consts.uploader.css + '/uploader.css';
+            if (typeof(requested_skin) !== 'undefined' && requested_skin !== null && requested_skin.length > 0) {
+                if (validation.is_url(requested_skin)) {
+                    skin_url = requested_skin;
+                } else {
+                    skin_url = consts.uploader.css + '/uploader.' + requested_skin + '.min.css';
+                }
+            }
 
             // Load the CSS
-            var vidcss = document.createElement('link');
-
-            if(!skin) vidcss.href = consts.uploader.css + '/uploader.css';
-            else if(skin.indexOf('/') > 0) vidcss.href = skin;
-            else vidcss.href = consts.uploader.css + '/uploader.'+ skin +'.min.css';
-
-            vidcss.rel = 'stylesheet';
-            vidcss.type = 'text/css';
-            document.head.appendChild(vidcss);
+            async.load_css(skin_url);
 
             var uploader_element = document.createElement('div');
 
@@ -98,7 +92,7 @@ define(['fsstack/framebase/utils/async',
                 element: uploader_element,
                 request: {
                     endpoint: consts.api.location + consts.api.endpoints.videos,
-                    token: token
+                    token: config.get('token')
                 },
                 validation: {
                     allowedExtensions: ['mp4', 'mpeg', 'mov', 'avi', 'flv', 'mkv', '3gp', 'aac', 'wmv', 'm4v'],
@@ -111,8 +105,8 @@ define(['fsstack/framebase/utils/async',
                         if (response['response'] !== 200) {
 
                             // Set up a default error handler if necessary.
-                            if (typeof(error_lambda) === 'undefined') {
-                                error_lambda = function(errors)
+                            if (!config.has_event(['upload', 'error'])) {
+                                config.add_event_lambda(['upload', 'error'], function(errors)
                                 {
                                     var message_text = '';
                                     if (errors.length === 0) {
@@ -128,10 +122,10 @@ define(['fsstack/framebase/utils/async',
                                     }
 
                                     alert(message_text);
-                                }
+                                });
                             }
 
-                            error_lambda(response['errors']);
+                            config.event(['upload', 'error'], response['errors'], uploader_element);
                         } else {
                             // Clone the original properties
                             for (var i=0, attrs=input_element.attributes, l=attrs.length; i<l; i++){
@@ -153,9 +147,7 @@ define(['fsstack/framebase/utils/async',
                                 uploader_element.parentNode.insertBefore(uploader_result, uploader_element.nextSibling);
                             }
 
-                            if (typeof(success_lambda) !== 'undefined') {
-                                success_lambda(response);
-                            }
+                            config.event(['upload', 'success'], response, uploader_element);
                         }
                     }
                 }

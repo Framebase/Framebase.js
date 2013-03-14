@@ -1,11 +1,25 @@
 var framebase_done_loading = null;
 
 require(['fsstack/framebase/play',
-       'fsstack/framebase/upload'],
-       function(play, upload){
+       'fsstack/framebase/upload',
+       'fsstack/framebase/initialize',
+       'fsstack/framebase/utils/config'],
+       function(play, upload, initialize, config){
 
-        window['framebase_player'] = play.player;
-        window['framebase_uploader'] = upload.uploader;
+        // Main Framebase function
+        window['framebase_initialize'] = window['framebase_init'] = initialize.initialize;
+
+        // API compatibility
+        var old_player_shim = function() {
+            play.player(new config({}));
+        }
+        var old_uploader_shim = function(token) {
+            upload.uploader(new config({token: token}));
+        }
+        window['framebase_player'] = old_player_shim;
+        window['framebase_uploader'] = old_uploader_shim;
+
+        // Call old events
         framebase_done_loading();
 });
 
@@ -13,12 +27,16 @@ require(['fsstack/framebase/play',
 // dependencies load. On the bright side, this makes our page-load footprint almost 0.
 (function(){
     var queue = [];
-    var queue_request = function(name, args)
+    var queue_request = function(name)
     {
-        queue.push({
-            name: name,
-            args: args
-        });
+        return function(args){
+            var args = Array.prototype.slice.call(arguments);
+            console.log(name, args);
+            queue.push({
+                name: name,
+                args: args
+            });
+        }
     }
 
     framebase_done_loading = function()
@@ -31,13 +49,8 @@ require(['fsstack/framebase/play',
     }
 
     // Public methods
-    window['framebase_player'] = function()
-    {
-        queue_request('framebase_player', Array.prototype.slice.call(arguments));
-    }
-
-    window['framebase_uploader'] = function()
-    {
-        queue_request('framebase_uploader', Array.prototype.slice.call(arguments));
-    }
+    window['framebase_player'] = queue_request('framebase_player');
+    window['framebase_uploader'] = queue_request('framebase_uploader');
+    window['framebase_initialize'] = queue_request('framebase_initialize');
+    window['framebase_init'] = queue_request('framebase_init');
 })();

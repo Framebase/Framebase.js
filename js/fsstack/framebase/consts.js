@@ -8,8 +8,9 @@ define([], function(){return new (function(){
 
     this.recorder = {
         location: "//record.framebase.io",
-        swf: "//static.framebase.io/swf/record-debug.swf",
-        css: "//framebase.io/assets/framebase-js/recorder/css",
+        swf: "//d2i38gmk56xnc7.cloudfront.net/swf/record-debug.swf",
+        css: "//framebase.io/assets/framebase-js/recorder/css-new",
+        //css: "/dz0073gza0pmo.cloudfront.net/framebase-js/recorder/css",
         endpoints: {
             uploads: '/uploads'
         }
