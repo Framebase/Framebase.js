@@ -1,4 +1,4 @@
-define(['fsstack/analytics'], function(analytics){return function(config){
+define(['//dz0073gza0pmo.cloudfront.net/framebase-js/analytics/analytics.js'], function(analytics){return function(config){
 
     var default_events = ['video_play', 'video_stop']
 
