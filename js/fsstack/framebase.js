@@ -31,7 +31,6 @@ require(['fsstack/framebase/play',
     {
         return function(args){
             var args = Array.prototype.slice.call(arguments);
-            console.log(name, args);
             queue.push({
                 name: name,
                 args: args
