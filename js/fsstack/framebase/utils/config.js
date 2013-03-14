@@ -65,8 +65,6 @@ define([], function(){return function(config){
         where.unshift('events');
 
         var list = this.get.apply(this, where);
-        console.log(list);
-        console.log(where, '=', list);
         if (Object.prototype.toString.call(list) !== '[object Array]') {
             if (typeof(list) === 'undefined' || list === null) {
                 list = [];
