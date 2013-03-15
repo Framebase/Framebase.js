@@ -6,8 +6,9 @@ define(['fsstack/framebase/utils/async',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
        'fsstack/framebase/recorder',
+       'fsstack/framebase/utils/validation',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, recorder, foreach){return new (function(){
+        function(async, consts, live, polyfills, recorder, validation, foreach){return new (function(){
     this.uploader = function(config_or_element, config)
     {
         async.attach_on_page_load(function(){

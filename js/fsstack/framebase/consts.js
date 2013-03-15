@@ -16,6 +16,8 @@ define([], function(){return new (function(){
         }
     }
 
+    this.sizzle = "//dz0073gza0pmo.cloudfront.net/sizzle.js";
+
     this.uploader = {
         js: "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/js/uploader.js",
         css: "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/css"

@@ -106,7 +106,6 @@ define(['fsstack/framebase/utils/async',
 
             window[initial_id + '_cameraDenied'] = window[initial_id + '_microphoneDenied'] = function()
             {
-                console.log(final_id);
                 document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> To use this application, you must have a working microphone and webcam and click &ldquo;Allow&rdquo; to grant access.<button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
                     recorder_element.innerHTML = '';
@@ -116,6 +115,11 @@ define(['fsstack/framebase/utils/async',
 
             record_button = make_button('Record', 'record', function(){
                 record_object.startRecord();
+
+                if (last_video_id) {
+                    config.event(['recorder', 'record_discard'], {}, recorder_element);
+                }
+
                 last_video_id = null;
                 controls.innerHTML = '';
                 controls.appendChild(stop_button);
@@ -187,8 +191,15 @@ define(['fsstack/framebase/utils/async',
                 recorder_element.innerHTML = 'Video upload done!';
             });
 
-            controls.innerHTML = '';
-            controls.appendChild(record_button);
+            window[initial_id + '_cameraEnabled'] = function(){
+                controls.innerHTML = '';
+                controls.appendChild(record_button);
+            };
+
+            window[initial_id + '_previewEnd'] = function(){
+                record_object.seekPreview(0);
+                record_object.playPreview();
+            }
         });
     }
 

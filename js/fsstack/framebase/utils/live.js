@@ -11,8 +11,7 @@ define(['fsstack/framebase/consts',
         polyfills.attachEvent(document.getElementsByTagName('body')[0], "DOMNodeInserted", function(evt) {
             try { // This has sub-elements which might match
                 eachElement(evt.target, selector, lambda);
-            } catch (err) {
-            }
+            } catch (err) {}
 
             // Match the parent
             if (matches_selector(evt.target, selector)) {
@@ -23,12 +22,36 @@ define(['fsstack/framebase/consts',
 
     // Hacks for IE8 and below
     var eachElement = function(target, selector, lambda) {
-        if (typeof(Array.prototype.map) !== 'undefined') {
-            return target.querySelectorAll(selector).forEach(lambda);
+        return querySelectorAll(target, selector, function(arr){
+            if (typeof(Array.prototype.map) !== 'undefined') {
+                arr.forEach(lambda);
+            } else {
+                map(arr, lambda);
+            }
+        });
+    }
+
+    var querySelectorAll = function(target, selector, lambda)
+    {
+        if (!document.querySelectorAll || (getIEVersion() >= 8 && getIEVersion() < 9)) {
+            // querySelectorAll isn't reliable
+            require([consts.sizzle], function(){
+                lambda(window['Sizzle'](selector, target));
+            });
         } else {
-            // Slow, IE8 fix
-            map(convertToArray(target.querySelectorAll(selector)), lambda);
+            lambda(target.querySelectorAll(selector));
         }
+    }
+
+    var getIEVersion = function() {
+        var rv = -1; // Return value assumes failure.
+        if (navigator.appName == 'Microsoft Internet Explorer') {
+            var ua = navigator.userAgent;
+            var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+            if (re.exec(ua) != null)
+                rv = parseFloat(RegExp.$1);
+        }
+        return rv;
     }
 
     var convertToArray = function(nodes){
@@ -51,8 +74,9 @@ define(['fsstack/framebase/consts',
             result = Array(length);
 
         for (var i = 0; i < length; i++) {
-            if (i in self)
+            if (i in self) {
                 result[i] = fun.call(thisp, self[i], i, object);
+            }
         }
         return result;
     };

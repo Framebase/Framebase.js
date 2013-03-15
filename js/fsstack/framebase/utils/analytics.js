@@ -17,14 +17,13 @@ define(['//dz0073gza0pmo.cloudfront.net/framebase-js/analytics/analytics.js'], f
         'video_pause': 'Framebase Video Paused',
         'video_play': 'Framebase Video Played',
         'video_stop': 'Framebase Video Stopped',
-        'uploader_success': 'Framebase Uploader Uploaded',
-        'recorder_success': 'Framebase Uploader Recorded',
-        'uploader_record_discard': 'Framebase Uploader Recorded Discard'
+        'upload_success': 'Framebase Uploader Uploaded',
+        'record_success': 'Framebase Uploader Recorded',
+        'upload_record_discard': 'Framebase Uploader Recorded Discard'
     }
 
     this.track = function(event, info)
     {
-        console.log(event, info, this);
         if (checkEnabled(event)) {
             window['analytics'].track(events[event], info);
         }

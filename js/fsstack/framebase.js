@@ -13,8 +13,8 @@ require(['fsstack/framebase/play',
         var old_player_shim = function() {
             play.player(new config({}));
         }
-        var old_uploader_shim = function(token) {
-            upload.uploader(new config({token: token}));
+        var old_uploader_shim = function(token, lambda, error_lambda) {
+            upload.uploader(new config({token: token,events:{upload:{success:lambda,error:error_lambda}}}));
         }
         window['framebase_player'] = old_player_shim;
         window['framebase_uploader'] = old_uploader_shim;

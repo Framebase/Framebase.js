@@ -7,8 +7,9 @@ define(['jquery',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
        'fsstack/framebase/utils/validation',
-       'fsstack/framebase/utils/foreach'],
-       function(jQuery, async, consts, live, polyfills, validation, foreach){return new (function(){
+       'fsstack/framebase/utils/foreach',
+       'fsstack/framebase/utils/elements'],
+       function(jQuery, async, consts, live, polyfills, validation, foreach, elements){return new (function(){
     this.player = function(config_or_element, config)
     {
         async.attach_on_page_load(function(){
@@ -30,7 +31,10 @@ define(['jquery',
             async.load_css('video[type=framebase]{display:none}');
 
             // Start looking for elements
-            live.monitor_dom('video[type=framebase]', function(elem){
+            live.monitor_dom('*[type=framebase]', function(elem){
+                if (elem.tagName.toLowerCase() !== 'video') { //IE hack
+                    return;
+                }
                 elem.removeAttribute('type');
                 framebase_player_one(elem, config);
             });
@@ -61,8 +65,16 @@ define(['jquery',
             // Load the CSS
             async.load_css(skin_url);
 
+
             // vuhack
             var vdata = {"transcodingInfo" : {"status" : '1'}};
+
+            // IE8 doesn't allow properties to be set on UnknownHTMLElements. In addition to being in violation of the
+            // spec, it actually just crashes when you try. So we have to copy everything into this div. Ugh.
+            /*var new_video_object = document.createElement('div');
+            elements.copy(video_object, new_video_object);
+            video_object.parentNode.replaceChild(new_video_object, video_object);*/
+
             add_player(video_object, vdata, config);
         });
     }
@@ -104,9 +116,7 @@ define(['jquery',
             // Create the video tag
             video_object.width = video_object.width ? video_object.width : 640;
             video_object.height = video_object.height ? video_object.height: (video_object.width/16)*9;
-            // video_object.setAttribute('controls', video_object.getAttribute('controls') ? video_object.getAttribute('controls') : true);
             video_object.setAttribute('preload', video_object.getAttribute('preload') ? video_object.getAttribute('preload') : 'auto');
-            // video_object.setAttribute('poster', 'assets/img/magic.png');
 
             // Check if iOS
             var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
@@ -117,10 +127,15 @@ define(['jquery',
 
             var video_src = document.createElement('source');
             // User RTMP unless iOS or Android
-            if(iOS || android) video_src.src = vdata['fileUriHttps'];
-            else video_src.src = vdata['rtmpUri'];
+            if (iOS || android) {
+                video_src.src = vdata['fileUriHttps'];
+            } else {
+                video_src.src = vdata['rtmpUri'];
+            }
+
             video_src.type = "video/mp4";
             video_object.appendChild(video_src);
+
 
             var is_done_loading = false;
             var add_event_listeners = function(me)
