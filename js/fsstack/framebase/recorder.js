@@ -22,7 +22,7 @@ define(['fsstack/framebase/utils/async',
             // bad, because it means the element HAS to be in document. That shouldn't really matter, but it's still
             // fairly silly.
             var real_id = polyfills.attr(input_element, 'id');
-            var initial_id = random_string(20);
+            var initial_id = 'fbr' + random_string(20);
             var final_id = real_id ? real_id : random_string(20);
 
             // Build the recorder_element
@@ -55,7 +55,7 @@ define(['fsstack/framebase/utils/async',
 
                 polyfills.attr(recorder_element, key, value);
             }
-            recorder_element.innerHTML = '<div class="fb_record_screen"><div id="' + initial_id + '"></div></div><div id="' + initial_id + '-spinner"></div><div class="fb_record_controls" id="' + initial_id + '-controls"></div>';
+            recorder_element.innerHTML = '<div class="fb_record_container"><div class="fb_record_screen"><div id="' + initial_id + '"></div></div><div id="' + initial_id + '-spinner" class="fb_record_spinner" style="display:none"><span></span></div><div class="fb_record_controls" id="' + initial_id + '-controls"></div></div>';
 
             input_element.parentNode.replaceChild(recorder_element, input_element);
 
@@ -69,6 +69,7 @@ define(['fsstack/framebase/utils/async',
             var embed_params = {
                 allowScriptAccess: 'always',
                 swliveconnect: 'true',
+                flashvars: 'id=' + initial_id,
                 wmode: "transparent"
             };
 
@@ -90,27 +91,27 @@ define(['fsstack/framebase/utils/async',
             var spinner = document.getElementById(initial_id + '-spinner');
             var spinner_visible = function(enable)
             {
-                spinner.innerHTML = enable? '<span></span>' : '';
+                spinner.style.display = enable? 'inherit' : 'none';
             }
 
-            window[initial_id + '-waitStart'] = function()
+            window[initial_id + '_waitStart'] = function()
             {
                 spinner_visible(true);
             }
 
-            window[initial_id + '-waitStop'] = function()
+            window[initial_id + '_waitStop'] = function()
             {
                 spinner_visible(false);
             }
 
-            window[initial_id + '-cameraDisabled'] = function()
+            window[initial_id + '_cameraDenied'] = window[initial_id + '_microphoneDenied'] = function()
             {
-                alert('You must have a working camera and enable it for this to work.');
-            }
-
-            window[initial_id + '-microphoneDisabled'] = function()
-            {
-                alert('Your microphone is disabled. No sound will be captured.');
+                console.log(final_id);
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> To use this application, you must have a working microphone and webcam and click &ldquo;Allow&rdquo; to grant access.<button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
             }
 
             record_button = make_button('Record', 'record', function(){
