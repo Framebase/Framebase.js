@@ -2,7 +2,7 @@ define([], function(){return function(config){
     this.get = function()
     {
         var ret = config;
-        for (var i in arguments) {
+        for (var i = 0; i < arguments.length; i++) {
             if (arguments[i] in ret) {
                 ret = ret[arguments[i]]
             } else {
@@ -39,7 +39,7 @@ define([], function(){return function(config){
         var evt = this.get.apply(this, name);
         if (typeof(evt) === 'function') {
             evt.call(scope, info);
-        } else if (Object.prototype.toString.call(evt) !== '[object Array]') {
+        } else if (Object.prototype.toString.call(evt) === '[object Array]') {
             for (var i in evt) {
                 evt[i].call(scope, info);
             }
@@ -48,7 +48,7 @@ define([], function(){return function(config){
         var onEvent = this.get('events', 'on_event');
         if (typeof(onEvent) === 'function') {
             onEvent.call(scope, name.join('_'), info);
-        } else if (Object.prototype.toString.call(evt) !== '[object Array]') {
+        } else if (Object.prototype.toString.call(evt) === '[object Array]') {
             for (var i in onEvent) {
                 onEvent[i].call(scope, name.slice(1).join('_'), info);
             }

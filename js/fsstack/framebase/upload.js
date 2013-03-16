@@ -48,8 +48,11 @@ define(['fsstack/framebase/utils/async',
      */
     var framebase_uploader_one = function(input_element, config)
     {
+        var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
+        var android = navigator.userAgent.toLowerCase().indexOf("android") > -1;
+
         // If it's a recording element, pass it off to the recorder
-        if (polyfills.attr(input_element, 'record')) {
+        if (!(iOS || android) && polyfills.attr(input_element, 'record')) {
             return recorder.recorder(input_element, config);
         }
 

@@ -71,11 +71,11 @@ define(['jquery',
 
             // IE8 doesn't allow properties to be set on UnknownHTMLElements. In addition to being in violation of the
             // spec, it actually just crashes when you try. So we have to copy everything into this div. Ugh.
-            /*var new_video_object = document.createElement('div');
+            var new_video_object = document.createElement('div');
             elements.copy(video_object, new_video_object);
-            video_object.parentNode.replaceChild(new_video_object, video_object);*/
+            video_object.parentNode.replaceChild(new_video_object, video_object);
 
-            add_player(video_object, vdata, config);
+            add_player(new_video_object, vdata, config);
         });
     }
 
@@ -114,8 +114,32 @@ define(['jquery',
                 xmlHttp.send( null );
         } else {
             // Create the video tag
-            video_object.width = video_object.width ? video_object.width : 640;
-            video_object.height = video_object.height ? video_object.height: (video_object.width/16)*9;
+
+            var width, height = null;
+            if (polyfills.attr(video_object, 'width')) {
+                width = polyfills.attr(video_object, 'width');
+            } else if (video_object.style.width) {
+                width = video_object.style.width;
+            } else {
+                width = '640px';
+            }
+
+            if (polyfills.attr(video_object, 'height')) {
+                height = polyfills.attr(video_object, 'height');
+            } else if (video_object.style.height) {
+                height = video_object.style.height;
+            } else {
+                var width_unit = width.replace(/[\-\d\.]+/,'');
+                var width_number = parseInt(width.substring(0,width.length - width_unit.length));
+                height = ((width_number / 16) * 9) + width_unit;
+            }
+
+            video_object.style.width = width;
+            polyfills.attr(video_object, 'width', width);
+
+            video_object.style.height = height;
+            polyfills.attr(video_object, 'height', height);
+
             video_object.setAttribute('preload', video_object.getAttribute('preload') ? video_object.getAttribute('preload') : 'auto');
 
             // Check if iOS

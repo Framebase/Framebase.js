@@ -59,6 +59,49 @@ define(['fsstack/framebase/utils/async',
 
             input_element.parentNode.replaceChild(recorder_element, input_element);
 
+            var retina = window.devicePixelRatio > 1;
+            var flashVersion = window['swfobject'].getFlashPlayerVersion();
+            if (retina &&
+                (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
+
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
+            if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
+            var isPPAPI = false;
+            var type = 'application/x-shockwave-flash';
+            var mimeTypes = navigator.mimeTypes;
+
+            if (mimeTypes && mimeTypes[type] && mimeTypes[type].enabledPlugin &&
+                mimeTypes[type].enabledPlugin.filename == 'pepflashplayer.dll') isPPAPI = true;
+
+            if (isPPAPI) {
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
+
+
             var embed_attrs = {
                 data: consts.recorder.swf,
                 width: '620',
