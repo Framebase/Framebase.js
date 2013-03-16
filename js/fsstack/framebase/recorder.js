@@ -6,9 +6,10 @@ define(['fsstack/framebase/utils/async',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
        'fsstack/framebase/utils/validation',
+       'fsstack/framebase/utils/elements',
        'jquery',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, validation, jQuery, foreach){return new (function(){
+        function(async, consts, live, polyfills, validation, elements, jQuery, foreach){return new (function(){
 
     var is_recorder_init = false;
     /**
@@ -100,12 +101,12 @@ define(['fsstack/framebase/utils/async',
                 return;
             }
 
-
+            var size = elements.calculate_size(input_element, '400px', 4, 3);
 
             var embed_attrs = {
                 data: consts.recorder.swf,
-                width: '620',
-                height: '480',
+                width: size.width,
+                height: size.height,
                 id: final_id,
                 name: final_id
             };

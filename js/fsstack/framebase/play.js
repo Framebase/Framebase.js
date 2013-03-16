@@ -114,31 +114,12 @@ define(['jquery',
                 xmlHttp.send( null );
         } else {
             // Create the video tag
+            var size = elements.calculate_size(video_object, '640px', 16, 9);
+            video_object.style.width = size.width;
+            polyfills.attr(video_object, 'width', size.width);
 
-            var width, height = null;
-            if (polyfills.attr(video_object, 'width')) {
-                width = polyfills.attr(video_object, 'width');
-            } else if (video_object.style.width) {
-                width = video_object.style.width;
-            } else {
-                width = '640px';
-            }
-
-            if (polyfills.attr(video_object, 'height')) {
-                height = polyfills.attr(video_object, 'height');
-            } else if (video_object.style.height) {
-                height = video_object.style.height;
-            } else {
-                var width_unit = width.replace(/[\-\d\.]+/,'');
-                var width_number = parseInt(width.substring(0,width.length - width_unit.length));
-                height = ((width_number / 16) * 9) + width_unit;
-            }
-
-            video_object.style.width = width;
-            polyfills.attr(video_object, 'width', width);
-
-            video_object.style.height = height;
-            polyfills.attr(video_object, 'height', height);
+            video_object.style.height = size.height;
+            polyfills.attr(video_object, 'height', size.height);
 
             video_object.setAttribute('preload', video_object.getAttribute('preload') ? video_object.getAttribute('preload') : 'auto');
 
