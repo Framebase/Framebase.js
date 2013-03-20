@@ -2,6 +2,7 @@
  * Player loading functions
  */
 define(['jquery',
+       'fsstack/framebase/utils/debug',
        'fsstack/framebase/utils/async',
        'fsstack/framebase/consts',
        'fsstack/framebase/utils/live',
@@ -9,9 +10,10 @@ define(['jquery',
        'fsstack/framebase/utils/validation',
        'fsstack/framebase/utils/foreach',
        'fsstack/framebase/utils/elements'],
-       function(jQuery, async, consts, live, polyfills, validation, foreach, elements){return new (function(){
+       function(jQuery, debug, async, consts, live, polyfills, validation, foreach, elements){return new (function(){
     this.player = function(config_or_element, config)
     {
+        debug('player attached to page load');
         async.attach_on_page_load(function(){
             if (polyfills.isElement(config_or_element)) {
                 framebase_player_one(config_or_element, config);
@@ -24,6 +26,7 @@ define(['jquery',
     var player_is_monitoring_document = false;
     var framebase_player_all = function(config)
     {
+        debug('the player is watching you');
         if (!player_is_monitoring_document) {
             player_is_monitoring_document = true;
 
@@ -49,6 +52,7 @@ define(['jquery',
      */
     var framebase_player_one = function(video_object, config)
     {
+        debug('initializing the player on', video_object, config);
         require([consts.player.js], function(){
             window['jQuery'] = jQuery;
             // Figure out which skin to load
@@ -71,11 +75,11 @@ define(['jquery',
 
             // IE8 doesn't allow properties to be set on UnknownHTMLElements. In addition to being in violation of the
             // spec, it actually just crashes when you try. So we have to copy everything into this div. Ugh.
-            var new_video_object = document.createElement('div');
+            /*var new_video_object = document.createElement('div');
             elements.copy(video_object, new_video_object);
-            video_object.parentNode.replaceChild(new_video_object, video_object);
+            video_object.parentNode.replaceChild(new_video_object, video_object);*/
 
-            add_player(new_video_object, vdata, config);
+            add_player(video_object, vdata, config);
         });
     }
 
@@ -118,8 +122,13 @@ define(['jquery',
             video_object.style.width = size.width;
             polyfills.attr(video_object, 'width', size.width);
 
-            video_object.style.height = size.height;
-            polyfills.attr(video_object, 'height', size.height);
+            if (size.is_dynamic) {
+                video_object.style.height = '100%';
+                polyfills.attr(video_object, 'height', '100%');
+            } else {
+                video_object.style.height = size.height;
+                polyfills.attr(video_object, 'height', size.height);
+            }
 
             video_object.setAttribute('preload', video_object.getAttribute('preload') ? video_object.getAttribute('preload') : 'auto');
 
@@ -186,7 +195,7 @@ define(['jquery',
                     }
                 });
 
-                polyfills.attachEvent(window, 'onbeforeunload', function(evt){
+                polyfills.attachEvent(window, 'beforeunload', function(evt){
                     if (is_done_loading && debounce) {
                         if (!has_ended && has_played) {
                             config.event(['video', 'stop'], {complete: false, time: me.currentTime}, me);
@@ -216,14 +225,56 @@ define(['jquery',
                                 is_done_loading = true;
                             }, 300);
                         })
+                    } else {
+                        is_done_loading = true;
+                    }
 
-                        if (polyfills.attr(media, 'data-controls') == 'none') {
-                            player.controls[0].style.display = 'none';
-                        } else if (polyfills.attr(media, 'data-controls') == 'hideOnStart') {
-                            player.hideControls(false);
+                    setTimeout(function(){
+                        is_done_loading = true;
+                    }, 500);
+
+                    if (polyfills.attr(media, 'data-controls') == 'none') {
+                        player.controls[0].style.display = 'none';
+                    } else if (polyfills.attr(media, 'data-controls') == 'hideOnStart') {
+                        player.hideControls(false);
+                    }
+
+                    add_event_listeners(media);
+
+                    var new_elem = player.container[0];
+                    if (polyfills.attr(video_object, 'id')) {
+                        polyfills.attr(new_elem, 'id', polyfills.attr(video_object, 'id'));
+                    }
+
+                    if (polyfills.attr(video_object, 'class') !== null) {
+                        polyfills.attr(new_elem, 'class', polyfills.attr(new_elem, 'class') + ' ' + polyfills.attr(video_object, 'class'))
+                    }
+
+                    var can_play = false;
+                    media.addEventListener('canplay', function(){
+                        can_play = true;
+                    });
+                    var enqueue = function(event)
+                    {
+                        if (can_play) {
+                            media[event]();
+                        } else {
+                            setTimeout(function(){enqueue(event)}, 500);
                         }
+                    }
 
-                        add_event_listeners(media);
+                    new_elem['play'] = function() { enqueue('play'); }
+                    new_elem['pause'] = function(){ enqueue('pause'); }
+                    new_elem['stop'] = function(){ enqueue('stop'); }
+                    new_elem['seek'] = function(to) { media.currentTime = to; }
+
+
+                    if (size.is_dynamic) {
+                        polyfills.attr(new_elem, 'height', size.height);
+                        new_elem.style.height = size.height;
+                        polyfills.attachEvent(window, 'resize', function(){
+                            var new_size = elements.calculate_size(new_elem, '', 16, 9);
+                        });
                     }
                 }
             };
@@ -232,7 +283,7 @@ define(['jquery',
                 media_config['mode'] = 'shim';
             }
 
-            jQuery(video_object).mediaelementplayer(media_config);
+            window['mejs'].$(video_object).mediaelementplayer(media_config);
         }
     }
 })()});

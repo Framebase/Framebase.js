@@ -8,11 +8,18 @@ define([], function(){return new (function(){
 
     this.recorder = {
         location: "//record.framebase.io",
-        swf: "//s3-us-west-1.amazonaws.com/static.framebase.io/swf/record.swf",
+        swf: "//s3-us-west-1.amazonaws.com/static.framebase.io/swf/record-debug.swf",
         css: "//framebase.io/assets/framebase-js/recorder/css-new",
         //css: "/dz0073gza0pmo.cloudfront.net/framebase-js/recorder/css",
         endpoints: {
             uploads: '/uploads'
+        }
+    }
+
+    this.help = {
+        recorder: {
+            update_flash: "http://get.adobe.com/flashplayer/",
+            pepper_flash: "http://helpx.adobe.com/flash-player/kb/enable-system-flash-player-google-chrome.html"
         }
     }
 

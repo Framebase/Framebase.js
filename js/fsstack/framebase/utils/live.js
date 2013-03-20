@@ -1,8 +1,11 @@
 define(['fsstack/framebase/consts',
+       'fsstack/framebase/utils/debug',
        'fsstack/framebase/utils/foreach',
        'fsstack/framebase/utils/polyfills'],
-       function(consts, foreach, polyfills){return new (function(){
+       function(consts, debug, foreach, polyfills){return new (function(){
     this.monitor_dom = function(selector, lambda){
+
+        debug('starting dom monitor for ' + selector, lambda);
 
         // Find elements currently matching the selector
         eachElement(document, selector, lambda);
@@ -11,7 +14,7 @@ define(['fsstack/framebase/consts',
         polyfills.attachEvent(document.getElementsByTagName('body')[0], "DOMNodeInserted", function(evt) {
             try { // This has sub-elements which might match
                 eachElement(evt.target, selector, lambda);
-            } catch (err) {}
+            } catch (err) { }
 
             // Match the parent
             if (matches_selector(evt.target, selector)) {

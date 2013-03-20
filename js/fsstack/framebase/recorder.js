@@ -3,13 +3,14 @@
  */
 define(['fsstack/framebase/utils/async',
        'fsstack/framebase/consts',
+       'fsstack/framebase/utils/debug',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
        'fsstack/framebase/utils/validation',
        'fsstack/framebase/utils/elements',
        'jquery',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, validation, elements, jQuery, foreach){return new (function(){
+        function(async, consts, debug, live, polyfills, validation, elements, jQuery, foreach){return new (function(){
 
     var is_recorder_init = false;
     /**
@@ -60,48 +61,14 @@ define(['fsstack/framebase/utils/async',
 
             input_element.parentNode.replaceChild(recorder_element, input_element);
 
-            var retina = window.devicePixelRatio > 1;
-            var flashVersion = window['swfobject'].getFlashPlayerVersion();
-            if (retina &&
-                (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
+            var size = elements.calculate_size(recorder_element, '400px', 4, 3);
 
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
+            if (size.is_dynamic) {
+                recorder_element.style.width = '100%';
+            } else {
+                recorder_element.style.width = size.width;
             }
-
-            if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
-            }
-
-            var isPPAPI = false;
-            var type = 'application/x-shockwave-flash';
-            var mimeTypes = navigator.mimeTypes;
-
-            if (mimeTypes && mimeTypes[type] && mimeTypes[type].enabledPlugin &&
-                mimeTypes[type].enabledPlugin.filename == 'pepflashplayer.dll') isPPAPI = true;
-
-            if (isPPAPI) {
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="http://get.adobe.com/flashplayer/" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
-            }
-
-            var size = elements.calculate_size(input_element, '400px', 4, 3);
+            recorder_element.style.height = size.height;
 
             var embed_attrs = {
                 data: consts.recorder.swf,
@@ -120,6 +87,47 @@ define(['fsstack/framebase/utils/async',
             // Embed the object
             var record_object = window['swfobject'].createSWF(embed_attrs, embed_params, initial_id);
 
+            var retina = window.devicePixelRatio > 1;
+            var flashVersion = window['swfobject'].getFlashPlayerVersion();
+            if (retina &&
+                (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
+
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
+            if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
+            var isPPAPI = false;
+            var type = 'application/x-shockwave-flash';
+            var mimeTypes = navigator.mimeTypes;
+
+            if (mimeTypes && mimeTypes[type] && mimeTypes[type].enabledPlugin &&
+                mimeTypes[type].enabledPlugin.filename == 'pepflashplayer.dll') isPPAPI = true;
+
+            if (isPPAPI) {
+                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="' + consts.help.recorder.pepper_flash + '" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                return;
+            }
+
             // Get ready to keep track of the result
             var recorder_result = document.createElement('input');
             polyfills.attr(recorder_result, 'type', 'hidden');
@@ -136,6 +144,7 @@ define(['fsstack/framebase/utils/async',
             var spinner_visible = function(enable)
             {
                 spinner.style.display = enable? 'inherit' : 'none';
+                controls.style.display = enable? 'none' : 'inherit';
             }
 
             window[initial_id + '_waitStart'] = function()
@@ -217,23 +226,32 @@ define(['fsstack/framebase/utils/async',
                             recorder_element.parentNode.insertBefore(recorder_result, recorder_element.nextSibling);
                         }
 
-                        config.event(['recorder', 'success'], {}, recorder_element);
+                        config.event(['record', 'success'], {videoID: data['videoID']}, recorder_element);
                     },
                     error: function(err)
                     {
-                        if (!config.has_event(['recorder', 'error'])) {
-                            config.add_event_lambda(['recorder', 'error'], function(err)
+                        if (!config.has_event(['record', 'error'])) {
+                            config.add_event_lambda(['record', 'error'], function(err)
                             {
                                 alert('An error occurred while saving the video: ' + err);
                             });
                         }
 
-                        config.event(['recorder', 'error'], err, recorder_element);
+                        config.event(['record', 'error'], err, recorder_element);
                     }
                 });
 
-                recorder_element.innerHTML = 'Video upload done!';
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_container"><div class="fb_record_screen"><div class="fb_record_error"><p>Your upload is complete!</p><div class="fb_record_done"></div></div></div>';
             });
+
+            if (size.is_dynamic) {
+                polyfills.attachEvent(window, 'resize', function(){
+                    var new_size = elements.calculate_size(recorder_element, '', 4, 3);
+                    recorder_element.style.height = new_size.height;
+                    record_object.style.width = new_size.width;
+                    record_object.style.height = new_size.height;
+                });
+            }
 
             window[initial_id + '_cameraEnabled'] = function(){
                 controls.innerHTML = '';
@@ -243,6 +261,12 @@ define(['fsstack/framebase/utils/async',
             window[initial_id + '_previewEnd'] = function(){
                 record_object.seekPreview(0);
                 record_object.playPreview();
+            }
+
+            if (!('__framebase_recorder_onLog' in window)) {
+                window['__framebase_recorder_onLog'] = function(text){
+                    debug(text + ', whispers the recorder softly.');
+                }
             }
         });
     }

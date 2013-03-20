@@ -2,13 +2,14 @@
  * Uploader loading functions
  */
 define(['fsstack/framebase/utils/async',
+       'fsstack/framebase/utils/debug',
        'fsstack/framebase/consts',
        'fsstack/framebase/utils/live',
        'fsstack/framebase/utils/polyfills',
        'fsstack/framebase/recorder',
        'fsstack/framebase/utils/validation',
        'fsstack/framebase/utils/foreach'],
-        function(async, consts, live, polyfills, recorder, validation, foreach){return new (function(){
+        function(async, debug, consts, live, polyfills, recorder, validation, foreach){return new (function(){
     this.uploader = function(config_or_element, config)
     {
         async.attach_on_page_load(function(){
@@ -29,6 +30,8 @@ define(['fsstack/framebase/utils/async',
     {
         if (!uploader_is_monitoring_document) {
             uploader_is_monitoring_document = true;
+
+            debug("the uploader hopes you aren't doing anything you wouldn't want him seeing");
 
             // Add our CSS to hide the default video elements
             async.load_css('input[type=framebase]{display:none}');
@@ -55,6 +58,7 @@ define(['fsstack/framebase/utils/async',
         if (!(iOS || android) && polyfills.attr(input_element, 'record')) {
             return recorder.recorder(input_element, config);
         }
+        debug('loading the uploader on', input_element, config);
 
         require([consts.uploader.js], function(){
             // Figure out which skin to load
