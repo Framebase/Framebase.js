@@ -141,7 +141,7 @@ define(['jquery',
 
             var video_src = document.createElement('source');
             // User RTMP unless iOS or Android
-            if (iOS || android) {
+            if (true || iOS || android) {
                 video_src.src = vdata['fileUriHttps'];
             } else {
                 video_src.src = vdata['rtmpUri'];
@@ -206,7 +206,7 @@ define(['jquery',
             }
 
             var media_config = {
-                plugins: ['flash', 'silverlight', 'html5'],
+                plugins: ['html5', 'flash', 'silverlight'],
                 pluginPath: consts.player.plugins,
                 preload: true,
                 pauseOtherPlayers: false,
@@ -279,7 +279,7 @@ define(['jquery',
                 }
             };
 
-            if (!(iOS || android)) {
+            if (false && !(iOS || android)) {
                 media_config['mode'] = 'shim';
             }
 

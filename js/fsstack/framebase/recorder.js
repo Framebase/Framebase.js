@@ -92,7 +92,7 @@ define(['fsstack/framebase/utils/async',
             if (retina &&
                 (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
 
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
                     recorder_element.innerHTML = '';
                     recorder_element.appendChild(input_element);
@@ -102,7 +102,7 @@ define(['fsstack/framebase/utils/async',
             }
 
             if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
                     recorder_element.innerHTML = '';
                     recorder_element.appendChild(input_element);
@@ -111,15 +111,8 @@ define(['fsstack/framebase/utils/async',
                 return;
             }
 
-            var isPPAPI = false;
-            var type = 'application/x-shockwave-flash';
-            var mimeTypes = navigator.mimeTypes;
-
-            if (mimeTypes && mimeTypes[type] && mimeTypes[type].enabledPlugin &&
-                mimeTypes[type].enabledPlugin.filename == 'pepflashplayer.dll') isPPAPI = true;
-
-            if (isPPAPI) {
-                document.getElementById(initial_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="' + consts.help.recorder.pepper_flash + '" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+            if (checkForPepper()) {
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="' + consts.help.recorder.pepper_flash + '" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
                     recorder_element.innerHTML = '';
                     recorder_element.appendChild(input_element);
@@ -150,15 +143,18 @@ define(['fsstack/framebase/utils/async',
             window[initial_id + '_waitStart'] = function()
             {
                 spinner_visible(true);
+                debug('wait start');
             }
 
             window[initial_id + '_waitStop'] = function()
             {
                 spinner_visible(false);
+                debug('wait stop');
             }
 
             window[initial_id + '_cameraDenied'] = window[initial_id + '_microphoneDenied'] = function()
             {
+                debug('camera denied');
                 document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> To use this application, you must have a working microphone and webcam and click &ldquo;Allow&rdquo; to grant access.<button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
                     recorder_element.innerHTML = '';
@@ -242,6 +238,7 @@ define(['fsstack/framebase/utils/async',
                 });
 
                 document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_container"><div class="fb_record_screen"><div class="fb_record_error"><p>Your upload is complete!</p><div class="fb_record_done"></div></div></div>';
+                controls.innerHTML = '';
             });
 
             if (size.is_dynamic) {
@@ -254,11 +251,13 @@ define(['fsstack/framebase/utils/async',
             }
 
             window[initial_id + '_cameraEnabled'] = function(){
+                debug('camera enabled');
                 controls.innerHTML = '';
                 controls.appendChild(record_button);
             };
 
             window[initial_id + '_previewEnd'] = function(){
+                debug('preview end');
                 record_object.seekPreview(0);
                 record_object.playPreview();
             }
@@ -269,6 +268,15 @@ define(['fsstack/framebase/utils/async',
                 }
             }
         });
+    }
+
+    var checkForPepper = function() {
+        if (navigator.mimeTypes && 'chrome' in window) {
+            var filename = navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.filename;
+            if (filename === 'pepflashplayer.dll' || filename === 'libpepflashplayer.so' ||
+                filename === 'PepperFlashPlayer.plugin') return true;
+        }
+        return false;
     }
 
     var make_button = function(text, css_class, lambda)
