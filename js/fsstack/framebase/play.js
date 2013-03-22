@@ -53,8 +53,10 @@ define(['jquery',
     var framebase_player_one = function(video_object, config)
     {
         debug('initializing the player on', video_object, config);
+        var old_jquery = window['jQuery'];
+        window['jQuery'] = jQuery;
         require([consts.player.js], function(){
-            window['jQuery'] = jQuery;
+            window['jQuery'] = old_jquery;
             // Figure out which skin to load
             var requested_skin = polyfills.attr(video_object, 'data-skin');
             var skin_url = consts.player.css + '/player.min.css';
@@ -135,13 +137,16 @@ define(['jquery',
             // Check if iOS
             var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
 
+            // Check if FF
+            var firefox = ('MozBoxSizing' in document.documentElement.style);
+
             // Check if Android
             var ua = navigator.userAgent.toLowerCase();
             var android = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
 
             var video_src = document.createElement('source');
             // User RTMP unless iOS or Android
-            if (true || iOS || android) {
+            if (!firefox) {
                 video_src.src = vdata['fileUriHttps'];
             } else {
                 video_src.src = vdata['rtmpUri'];
@@ -206,7 +211,7 @@ define(['jquery',
             }
 
             var media_config = {
-                plugins: ['html5', 'flash', 'silverlight'],
+                plugins: ['flash', 'silverlight', 'html5'],
                 pluginPath: consts.player.plugins,
                 preload: true,
                 pauseOtherPlayers: false,
@@ -279,11 +284,11 @@ define(['jquery',
                 }
             };
 
-            if (false && !(iOS || android)) {
+            if (firefox) {
                 media_config['mode'] = 'shim';
             }
 
-            window['mejs'].$(video_object).mediaelementplayer(media_config);
+            window['mejs'].$(video_object).mediaelementplayer(media_config); //todo: remove jquery dependency
         }
     }
 })()});
