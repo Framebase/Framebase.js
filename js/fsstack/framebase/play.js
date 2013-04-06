@@ -156,6 +156,9 @@ define(['jquery',
             video_object.appendChild(video_src);
 
 
+            var local_events = {play: [], pause: [], stop: []};
+
+
             var is_done_loading = false;
             var add_event_listeners = function(me)
             {
@@ -178,6 +181,9 @@ define(['jquery',
                         config.event(['video', 'play'], {
                             time: me.currentTime
                         }, me);
+                        for (var i in local_events['play']) {
+                            local_events['play'][i].apply(me, []);
+                        }
                         s_debounce();
                     }
                 });
@@ -187,6 +193,9 @@ define(['jquery',
                         config.event(['video', 'pause'], {
                             time: me.currentTime
                         }, me);
+                        for (var i in local_events['pause']) {
+                            local_events['pause'][i].apply(me, []);
+                        }
                         s_debounce();
                     }
                 });
@@ -196,6 +205,9 @@ define(['jquery',
                         has_ended = true;
                         has_played = false;
                         config.event(['video', 'stop'], {complete: true}, me);
+                        for (var i in local_events['stop']) {
+                            local_events['stop'][i].apply(me, []);
+                        }
                         s_debounce();
                     }
                 });
@@ -204,6 +216,9 @@ define(['jquery',
                     if (is_done_loading && debounce) {
                         if (!has_ended && has_played) {
                             config.event(['video', 'stop'], {complete: false, time: me.currentTime}, me);
+                            for (var i in local_events['stop']) {
+                                local_events['stop'][i].apply(me, []);
+                            }
                         }
                         s_debounce();
                     }
@@ -268,10 +283,15 @@ define(['jquery',
                         }
                     }
 
+                    var add_to_events = function(event_name, lambda) {
+                        local_events[event_name].push(lambda);
+                    }
+
                     new_elem['play'] = function() { enqueue('play'); }
                     new_elem['pause'] = function(){ enqueue('pause'); }
                     new_elem['stop'] = function(){ enqueue('stop'); }
                     new_elem['seek'] = function(to) { media.currentTime = to; }
+                    new_elem['register_callback'] = add_to_events;
 
 
                     if (size.is_dynamic) {

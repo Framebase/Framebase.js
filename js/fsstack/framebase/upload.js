@@ -96,6 +96,9 @@ define(['fsstack/framebase/utils/async',
             polyfills.attr(uploader_result, 'type', 'hidden');
             var previously_uploaded = false;
 
+
+            var local_events = {error: [], success: []};
+
             var uploader = new window['frame_upload'].FineUploader({
                 element: uploader_element,
                 request: {
@@ -113,8 +116,8 @@ define(['fsstack/framebase/utils/async',
                         if (response['response'] !== 200) {
 
                             // Set up a default error handler if necessary.
-                            if (!config.has_event(['upload', 'error'])) {
-                                config.add_event_lambda(['upload', 'error'], function(errors)
+                            if (!config.has_event(['upload', 'error']) && local_events['error'].length < 1) {
+                                local_events['error'].push(function(errors)
                                 {
                                     var message_text = '';
                                     if (errors.length === 0) {
@@ -131,6 +134,11 @@ define(['fsstack/framebase/utils/async',
 
                                     alert(message_text);
                                 });
+                            }
+
+
+                            for (var i in local_events['error']) {
+                                local_events['error'][i].apply(uploader_element, []);
                             }
 
                             config.event(['upload', 'error'], response['errors'], uploader_element);
@@ -155,11 +163,20 @@ define(['fsstack/framebase/utils/async',
                                 uploader_element.parentNode.insertBefore(uploader_result, uploader_element.nextSibling);
                             }
 
+                            for (var i in local_events['success']) {
+                                local_events['success'][i].apply(uploader_element, []);
+                            }
                             config.event(['upload', 'success'], response, uploader_element);
                         }
                     }
                 }
             });
+
+
+            var add_to_events = function(event_name, lambda) {
+                local_events[event_name].push(lambda);
+            }
+            uploader_element['register_callback'] = add_to_events;
         });
     }
 })()});

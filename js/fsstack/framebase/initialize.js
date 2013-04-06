@@ -17,5 +17,10 @@ define(['fsstack/framebase/utils/analytics',
             upload.uploader(config);
         }
         play.player(config);
+
+        // This is awful :(
+        setTimeout(function(){
+            config.event(['load'], {}, this);
+        }, 500);
     }
 })()});

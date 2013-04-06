@@ -28,8 +28,18 @@ define(['fsstack/framebase/utils/polyfills'], function(polyfills){return new(fun
         var is_dynamic = false;
         if (width === null || width.replace(/[\-\d\.]+/, '') === '%') {
             polyfills.attr(src_element, 'width', '100%');
-            src_element.style.width = '100% !important';
-            src_element.style.display = 'inline !important';
+            try {
+                src_element.style.width = '100% !important';
+                src_element.style.display = 'inline !important';
+            } catch (err) {
+                try {
+                    src_element.style.setProperty('width', '100%', 'important');
+                    src_element.style.setProperty('display', 'inline', 'important');
+                } catch (err) {
+                    src_element.style.setAttribute('width', '100%', 'important');
+                    src_element.style.setAttribute('display', 'inline', 'important');
+                }
+            }
             width = src_element.offsetWidth + 'px';
 
             is_dynamic = true;

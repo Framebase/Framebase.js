@@ -61,6 +61,49 @@ define(['fsstack/framebase/utils/async',
 
             input_element.parentNode.replaceChild(recorder_element, input_element);
 
+            var retina = window.devicePixelRatio > 1;
+            var flashVersion = window['swfobject'].getFlashPlayerVersion();
+            if (retina &&
+                (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
+
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                config.event(['record', 'error'], {type: 'retina'}, recorder_element);
+                config.event(['record', 'error_retina'], {}, recorder_element);
+
+                return;
+            }
+
+            if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                config.event(['record', 'error'], {type: 'flash'}, recorder_element);
+                config.event(['record', 'error_flash'], {}, recorder_element);
+
+                return;
+            }
+
+            if (false && checkForPepper()) {
+                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="' + consts.help.recorder.pepper_flash + '" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
+                document.getElementById(initial_id + '-restart').onclick = function(){
+                    recorder_element.innerHTML = '';
+                    recorder_element.appendChild(input_element);
+                }
+
+                config.event(['record', 'error'], {type: 'pepper'}, recorder_element);
+                config.event(['record', 'error_pepper'], {}, recorder_element);
+
+                return;
+            }
+
             var size = elements.calculate_size(recorder_element, '400px', 4, 3);
 
             if (size.is_dynamic) {
@@ -87,39 +130,7 @@ define(['fsstack/framebase/utils/async',
             // Embed the object
             var record_object = window['swfobject'].createSWF(embed_attrs, embed_params, initial_id);
 
-            var retina = window.devicePixelRatio > 1;
-            var flashVersion = window['swfobject'].getFlashPlayerVersion();
-            if (retina &&
-                (flashVersion.major < 11 || (flashVersion.major == 11 && flashVersion.minor < 6))) {
-
-                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> Your version of Flash has a bug with Retina displays which makes recording impossible.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to update your Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
-            }
-
-            if (!window['swfobject'].hasFlashPlayerVersion("9.0")) {
-                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> This feature requires flash.<br /><br /><a href="' + consts.help.recorder.update_flash + '" target="_new">Click here to download Flash.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
-            }
-
-            if (checkForPepper()) {
-                document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span>Chrome\'s version of flash has a bug which prevents sound from being recorded.<br /><br /><a href="' + consts.help.recorder.pepper_flash + '" target="_new">Disable pepper to continue.</a><button id="' + initial_id + '-restart">Try Again</button></p></div>';
-                document.getElementById(initial_id + '-restart').onclick = function(){
-                    recorder_element.innerHTML = '';
-                    recorder_element.appendChild(input_element);
-                }
-
-                return;
-            }
+            config.event(['record', 'init'], {}, record_object);
 
             // Get ready to keep track of the result
             var recorder_result = document.createElement('input');
@@ -144,12 +155,14 @@ define(['fsstack/framebase/utils/async',
             {
                 spinner_visible(true);
                 debug('wait start');
+                config.event(['record', 'wait_start'], {}, recorder_element);
             }
 
             window[initial_id + '_waitStop'] = function()
             {
                 spinner_visible(false);
                 debug('wait stop');
+                config.event(['record', 'wait_stop'], {}, recorder_element);
             }
 
             window[initial_id + '_cameraDenied'] = window[initial_id + '_microphoneDenied'] = function()
@@ -160,13 +173,15 @@ define(['fsstack/framebase/utils/async',
                     recorder_element.innerHTML = '';
                     recorder_element.appendChild(input_element);
                 }
+                config.event(['record', 'error'], {type: 'camera'}, recorder_element);
+                config.event(['record', 'error_camera'], {}, recorder_element);
             }
 
             record_button = make_button('Record', 'record', function(){
                 record_object.startRecord();
 
                 if (last_video_id) {
-                    config.event(['recorder', 'record_discard'], {}, recorder_element);
+                    config.event(['record', 'discard'], {}, recorder_element);
                 }
 
                 last_video_id = null;
@@ -177,8 +192,10 @@ define(['fsstack/framebase/utils/async',
             stop_button = make_button('Stop', 'stop', function(){
                 if (!last_video_id) {
                     last_video_id = record_object.stopRecord();
+                    config.event(['record', 'stop_record'], {}, recorder_element);
                 } else {
                     record_object.stopPreview();
+                    config.event(['record', 'stop_preview'], {}, recorder_element);
                 }
 
                 controls.innerHTML = '';
@@ -192,8 +209,10 @@ define(['fsstack/framebase/utils/async',
                 controls.appendChild(record_button);
                 controls.appendChild(stop_button);
                 controls.appendChild(save_button);
+                config.event(['record', 'play_preview'], {}, recorder_element);
             });
             save_button = make_button('Save', 'save', function(){
+                config.event(['record', 'save'], {}, recorder_element);
                 jQuery.ajax({
                     type: 'POST',
                     url: consts.recorder.location + '/uploads/' + last_video_id + '.json',
@@ -202,7 +221,6 @@ define(['fsstack/framebase/utils/async',
                     },
                     success: function(data)
                     {
-
                         for (var i=0, attrs=input_element.attributes, l=attrs.length; i<l; i++){
                             var key = attrs.item(i).nodeName;
                             var value = attrs.item(i).nodeValue;
@@ -254,12 +272,14 @@ define(['fsstack/framebase/utils/async',
                 debug('camera enabled');
                 controls.innerHTML = '';
                 controls.appendChild(record_button);
+                config.event(['record', 'camera_enabled'], {}, recorder_element);
             };
 
             window[initial_id + '_previewEnd'] = function(){
                 debug('preview end');
                 record_object.seekPreview(0);
                 record_object.playPreview();
+                config.event(['record', 'preview_end'], {}, recorder_element);
             }
 
             if (!('__framebase_recorder_onLog' in window)) {
