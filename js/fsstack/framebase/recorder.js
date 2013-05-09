@@ -157,7 +157,6 @@ define(['fsstack/framebase/utils/async',
 
             window[initial_id + '_cameraDenied'] = window[initial_id + '_microphoneDenied'] = function()
             {
-                /*
                 debug('camera denied');
                 document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_error"><p><span>Error:</span> To use this application, you must have a working microphone and webcam and click &ldquo;Allow&rdquo; to grant access.<button id="' + initial_id + '-restart">Try Again</button></p></div>';
                 document.getElementById(initial_id + '-restart').onclick = function(){
@@ -165,7 +164,7 @@ define(['fsstack/framebase/utils/async',
                     recorder_element.appendChild(input_element);
                 }
                 config.event(['record', 'error'], {type: 'camera'}, recorder_element);
-                config.event(['record', 'error_camera'], {}, recorder_element);*/
+                config.event(['record', 'error_camera'], {}, recorder_element);
             }
 
             record_button = make_button('Record', 'record', function(){
@@ -191,7 +190,6 @@ define(['fsstack/framebase/utils/async',
 
                 controls.innerHTML = '';
                 controls.appendChild(record_button());
-                console.log(JSON.stringify(record_button()));
                 controls.appendChild(play_button());
                 controls.appendChild(save_button());
             });
@@ -265,12 +263,12 @@ define(['fsstack/framebase/utils/async',
                 });
             }
 
-            //window[initial_id + '_cameraEnabled'] = function(){
+            window[initial_id + '_cameraEnabled'] = function(){
                 debug('camera enabled');
                 controls.innerHTML = '';
                 controls.appendChild(record_button());
                 config.event(['record', 'camera_enabled'], {}, recorder_element);
-            //};
+            };
 
             window[initial_id + '_previewEnd'] = function(){
                 debug('preview end');
