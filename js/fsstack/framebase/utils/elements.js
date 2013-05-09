@@ -30,14 +30,11 @@ define(['fsstack/framebase/utils/polyfills'], function(polyfills){return new(fun
             polyfills.attr(src_element, 'width', '100%');
             try {
                 src_element.style.width = '100% !important';
-                src_element.style.display = 'inline !important';
             } catch (err) {
                 try {
                     src_element.style.setProperty('width', '100%', 'important');
-                    src_element.style.setProperty('display', 'inline', 'important');
                 } catch (err) {
                     src_element.style.setAttribute('width', '100%', 'important');
-                    src_element.style.setAttribute('display', 'inline', 'important');
                 }
             }
              // WARNING DOES NOT WORK IN SAFARI 5.0 - 5.1. THIS WILL RETURN A VALUE OF 0.
