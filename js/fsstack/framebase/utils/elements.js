@@ -40,7 +40,14 @@ define(['fsstack/framebase/utils/polyfills'], function(polyfills){return new(fun
                     src_element.style.setAttribute('display', 'inline', 'important');
                 }
             }
-            width = src_element.offsetWidth + 'px';
+             // WARNING DOES NOT WORK IN SAFARI 5.0 - 5.1. THIS WILL RETURN A VALUE OF 0.
+             if(src_element.firstChild != null)
+             {
+                 width = src_element.firstChild.offsetWidth + 'px';
+             }
+             else {
+                 width = src_element.offsetWidth + 'px';
+             }
 
             is_dynamic = true;
         }

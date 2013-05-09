@@ -73,7 +73,7 @@ define(['jquery',
 
 
             // vuhack
-            var vdata = {"transcodingInfo" : {"status" : '1'}};
+            var vdata = {"transcodingInfo" : {"status" : '1'}, "first": true};
 
             // IE8 doesn't allow properties to be set on UnknownHTMLElements. In addition to being in violation of the
             // spec, it actually just crashes when you try. So we have to copy everything into this div. Ugh.
@@ -85,12 +85,24 @@ define(['jquery',
         });
     }
 
+    var send_play = function(id, time)
+    {
+        jQuery.ajax({
+            method: 'POST',
+            url: consts.api.location + '/meter/' + id + '.json',
+            data: {time: time}
+        });
+    }
+
     /**
      * Vu what does this do?
      * @param {???} video_object ???
      * @param {???} vdata        ???
      */
-    var add_player = function(video_object, vdata, config){
+    var add_player = function(video_object, vdata, config, xyzzy){
+        if (typeof(xyzzy) === 'undefined') {
+            xyzzy = {first: true, wait_elem: null};
+        }
         // Check if transcoding is done TODO: extract this method and call it "addVideo"
         if(vdata['transcodingInfo']['status'] != 'completed') {
             var xmlHttp = null;
@@ -110,15 +122,27 @@ define(['jquery',
                 vdata = JSON.parse(xmlHttp.responseText);
                 // If already completed, add instantly
                 if(vdata['transcodingInfo']['status'] == 'completed') {
-                    add_player(video_object, vdata, config);
-
+                    add_player(video_object, vdata, config, xyzzy);
+                } else {
+                    setTimeout(function(){add_player(video_object, vdata, config, xyzzy)}, 3000);
+                    if (xyzzy.first) {
+                        var wait_html = "<div class='mejs-transcode'><div class='mejs-transcode-spinner'><span></span></div><p><span>Your video is transcoding</span></br>This should take a couple of minutes depending on the length of your video.</p></div>";
+                        xyzzy['wait_elem'] = document.createElement('div');
+                        xyzzy['wait_elem'].innerHTML = wait_html;
+                        video_object.parentNode.insertBefore(xyzzy['wait_elem'], video_object);
+                        xyzzy.first = false;
+                    }
                 }
-                // Else recurse and wait 3 seconds
-                else setTimeout(function(){add_player(video_object, vdata, config)}, 3000);
-                }
+            }
+                xmlHttp.onprogress = function() {};
+                xmlHttp.ontimeout = function() {};
+                xmlHttp.onerror = function() {};
                 xmlHttp.open( "GET", url, false);
                 xmlHttp.send( null );
         } else {
+            if (xyzzy['wait_elem']) {
+                xyzzy['wait_elem'].innerHTML = '';
+            }
             // Create the video tag
             var size = elements.calculate_size(video_object, '640px', 16, 9);
             video_object.style.width = size.width;
@@ -171,11 +195,14 @@ define(['jquery',
                         debounce = true;
                     }, 100);
                 }
+
+                var play_start_time = 0;
                 me.addEventListener('play', function(){
                     if (is_done_loading && debounce) {
                         if (!has_played) {
                             config.event(['video', 'start'], {}, me);
                         }
+                        play_start_time = me.currentTime;
                         has_ended = false;
                         has_played = true;
                         config.event(['video', 'play'], {
@@ -197,17 +224,21 @@ define(['jquery',
                             local_events['pause'][i].apply(me, []);
                         }
                         s_debounce();
+                        var played_seconds = me.currentTime - play_start_time;
+                        send_play(video_object.getAttribute('data-video'), played_seconds);
                     }
                 });
 
                 me.addEventListener('ended', function(){
-                    if (is_done_loading && debounce) {
+                    if (is_done_loading) {
                         has_ended = true;
                         has_played = false;
                         config.event(['video', 'stop'], {complete: true}, me);
                         for (var i in local_events['stop']) {
                             local_events['stop'][i].apply(me, []);
                         }
+                        var played_seconds = me.currentTime - play_start_time;
+                        send_play(video_object.getAttribute('data-video'), played_seconds);
                         s_debounce();
                     }
                 });

@@ -15,8 +15,7 @@ define(['fsstack/framebase/utils/polyfills',
         }
 
         logging_history.push(args);
-        if (window.location.hostname.match(/(\.int$|^localhost$|^127.0.0.1$|framebase\.io$)/) &&
-            ('localStorage' in window && window['localStorage']['framebase_debug'] === "true") &&
+        if (('localStorage' in window && window['localStorage']['framebase_debug'] === "true") &&
             ('console' in window && 'log' in window['console'])) {
             window['console'].log.apply(window['console'], arguments);
         }

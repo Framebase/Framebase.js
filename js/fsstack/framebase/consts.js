@@ -1,15 +1,18 @@
 define([], function(){return new (function(){
+    var is_https = window['location']['protocol'].indexOf('https') === 0;
+    var proto = is_https ? 'https:' : 'http:';
+
     this.api = {
-        location: "//api.framebase.io",
+        location: proto + "//api.framebase.io",
         endpoints: {
             videos: "/videos.json"
         }
     };
 
     this.recorder = {
-        location: "//record.framebase.io",
-        swf: "//s3-us-west-1.amazonaws.com/static.framebase.io/swf/record.swf",
-        css: "//framebase.io/assets/framebase-js/recorder/css-new",
+        location: proto + "//record.framebase.io",
+        swf: proto + "//s3-us-west-1.amazonaws.com/static.framebase.io/swf/record.swf",
+        css: proto + "//framebase.io/assets/framebase-js/recorder/css-new",
         //css: "/dz0073gza0pmo.cloudfront.net/framebase-js/recorder/css",
         endpoints: {
             uploads: '/uploads'
@@ -23,22 +26,22 @@ define([], function(){return new (function(){
         }
     }
 
-    this.sizzle = "//dz0073gza0pmo.cloudfront.net/sizzle.js";
+    this.sizzle = proto + "//dz0073gza0pmo.cloudfront.net/sizzle.js";
 
     this.uploader = {
-        js: "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/js/uploader.js",
-        css: "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/css"
+        js: proto + "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/js/uploader.js",
+        css: proto + "//dz0073gza0pmo.cloudfront.net/framebase-js/uploader/css"
     }
 
     this.player = {
-        js: "//dz0073gza0pmo.cloudfront.net/framebase-js/player/js/player.min.js",
-        css: "//dz0073gza0pmo.cloudfront.net/framebase-js/player/css",
-        plugins: "//dz0073gza0pmo.cloudfront.net/framebase-js/player/js/"
+        js: proto + "//dz0073gza0pmo.cloudfront.net/framebase-js/player/js/player.min.js",
+        css: proto + "//dz0073gza0pmo.cloudfront.net/framebase-js/player/css",
+        plugins: proto + "//dz0073gza0pmo.cloudfront.net/framebase-js/player/js/"
     }
 
     this.common = {
         js: {
-            swfobject: "//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"
+            swfobject: proto + "//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"
         }
     }
 })()})

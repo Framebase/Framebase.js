@@ -47,6 +47,14 @@ define(['fsstack/framebase/utils/debug', 'fsstack/framebase/utils/validation'],
     this.load_css = function(location_or_css)
     {
         debug('loading css', location_or_css);
+
+        var injection_point = null;
+        if (document.getElementsByTagName('head').length > 0) {
+            injection_point = document.getElementsByTagName('head')[0];
+        } else {
+            injection_point = document.getElementsByTagName('body')[0];
+        }
+
         // Load the CSS file
         if (validation.is_url(location_or_css)) {
             debug('css was file, loading from file');
@@ -54,14 +62,14 @@ define(['fsstack/framebase/utils/debug', 'fsstack/framebase/utils/validation'],
             link.type = 'text/css';
             link.rel = 'stylesheet';
             link.href = location_or_css;
-            document.getElementsByTagName('head')[0].appendChild(link);
+            injection_point.appendChild(link);
         // Insert the inline CSS
         } else {
             debug('inserting into head');
             var css = document.createElement('style');
             css.type = 'text/css';
             css.cssText = location_or_css;
-            document.getElementsByTagName('head')[0].appendChild(css);
+            injection_point.appendChild(css);
         }
     }
 })()})
