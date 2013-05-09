@@ -71,7 +71,6 @@ define(['fsstack/framebase/utils/async',
                 recorder_element.style.width = size.width;
             }
             recorder_element.style.height = size.height;
-            recorder_element.parentNode.style.height = size.height;
 
             var retina = window.devicePixelRatio > 1;
             var flashVersion = window['swfobject'].getFlashPlayerVersion();
