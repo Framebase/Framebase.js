@@ -138,10 +138,10 @@ define(['fsstack/framebase/utils/async',
 
 
                             for (var i in local_events['error']) {
-                                local_events['error'][i].apply(uploader_element, []);
+                                local_events['error'][i].apply(uploader_element, [{errors:response['errors'],fileName:fileName}]);
                             }
 
-                            config.event(['upload', 'error'], response['errors'], uploader_element);
+                            config.event(['upload', 'error'], {errors:response['errors'],fileName:fileName}, uploader_element);
                         } else {
                             // Clone the original properties
                             for (var i=0, attrs=input_element.attributes, l=attrs.length; i<l; i++){
@@ -164,9 +164,9 @@ define(['fsstack/framebase/utils/async',
                             }
 
                             for (var i in local_events['success']) {
-                                local_events['success'][i].apply(uploader_element, []);
+                                local_events['success'][i].apply(uploader_element, [{response:response,fileName:fileName}]);
                             }
-                            config.event(['upload', 'success'], response, uploader_element);
+                            config.event(['upload', 'success'], {response:response,fileName:fileName}, uploader_element);
                         }
                     }
                 }
