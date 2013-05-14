@@ -169,12 +169,7 @@ define(['jquery',
             var android = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
 
             var video_src = document.createElement('source');
-            // User RTMP unless iOS or Android
-            if (!firefox) {
-                video_src.src = vdata['fileUriHttps'];
-            } else {
-                video_src.src = vdata['rtmpUri'];
-            }
+            video_src.src = vdata['fileUriHttps'];
 
             video_src.type = "video/mp4";
             video_object.appendChild(video_src);
