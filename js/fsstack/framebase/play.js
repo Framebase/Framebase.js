@@ -145,14 +145,14 @@ define(['jquery',
             }
             // Create the video tag
             var size = elements.calculate_size(video_object, '640px', 16, 9);
-            video_object.style.width = size.width;
+            video_object.width = size.width;
             polyfills.attr(video_object, 'width', size.width);
 
             if (size.is_dynamic) {
-                video_object.style.height = '100%';
+                video_object.height = '100%';
                 polyfills.attr(video_object, 'height', '100%');
             } else {
-                video_object.style.height = size.height;
+                video_object.height = size.height;
                 polyfills.attr(video_object, 'height', size.height);
             }
 
