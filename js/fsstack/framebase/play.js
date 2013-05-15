@@ -257,6 +257,13 @@ define(['jquery',
                 preload: true,
                 pauseOtherPlayers: false,
                 success: function(media, node, player) {
+                    if (!video_object.children.length) {
+                        var mx = jQuery(node).parent().parent().parent();
+                        mx.replaceWith('<video width="' + size.width + '" height="' + size.height + '" src="' + vdata['fileUriHttps'] + '"></video>');
+                        return;
+                    }
+
+
                     if (media.pluginType != 'native') {
                         media.play();
                         var playedOnce = false;

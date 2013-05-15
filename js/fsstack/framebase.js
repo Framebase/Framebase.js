@@ -19,6 +19,12 @@ require(['fsstack/framebase/play',
         window['framebase_player'] = old_player_shim;
         window['framebase_uploader'] = old_uploader_shim;
 
+        (function(){
+            var div = document.createElement('span');
+            div.innerHTML = '<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->';
+            document.getElementsByTagName('body')[0].appendChild(div);
+        }());
+
         // Call old events
         framebase_done_loading();
 });
