@@ -124,7 +124,6 @@ define(['fsstack/framebase/utils/async',
             // Get ready to keep track of the result
             var recorder_result = document.createElement('input');
             polyfills.attr(recorder_result, 'type', 'hidden');
-            var previously_recorded = false;
 
             // Make the buttons
             var record_button;
@@ -225,11 +224,9 @@ define(['fsstack/framebase/utils/async',
                         polyfills.attr(recorder_result, 'value', data['videoID']);
                         polyfills.attr(document.getElementById(final_id), 'value', data['videoID']);
 
-                        if (!previously_recorded) {
-                            previously_recorded = true;
-                            var recorder_replace = document.getElementById(final_id).parentNode.parentNode;
-                            recorder_replace.parentNode.insertBefore(recorder_result, recorder_replace.nextSibling);
-                        }
+
+                        var recorder_replace = document.getElementById(final_id).parentNode.parentNode;
+                        recorder_replace.parentNode.insertBefore(recorder_result, recorder_replace.nextSibling);
 
                         config.event(['record', 'success'], {videoID: data['videoID']}, recorder_element);
                         document.getElementById(final_id).parentNode.innerHTML = '<div class="fb_record_container"><div class="fb_record_screen"><div class="fb_record_error"><p>Your upload is complete!</p><div class="fb_record_done"></div></div></div>';
