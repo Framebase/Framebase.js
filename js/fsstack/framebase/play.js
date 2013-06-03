@@ -268,12 +268,6 @@ define(['jquery',
                         media.play();
                         var playedOnce = false;
                         media.addEventListener('play',function(){
-                            if (!playedOnce) {
-                                media.pause();
-                            }
-
-                            playedOnce = true;
-
                             setTimeout(function(){
                                 is_done_loading = true;
                             }, 300);
