@@ -47,8 +47,10 @@ require(['fsstack/framebase/play',
     framebase_done_loading = function()
     {
         for(var i in queue) {
-            var queue_item = queue[i];
-            window[queue_item.name].apply(window, queue_item.args);
+            if(queue.hasOwnProperty(i)){
+                var queue_item = queue[i];
+                window[queue_item.name].apply(window, queue_item.args);
+            }
         }
         queue = {};
     }
