@@ -41,7 +41,9 @@ define([], function(){return function(config){
             evt.call(scope, info);
         } else if (Object.prototype.toString.call(evt) === '[object Array]') {
             for (var i in evt) {
-                evt[i].call(scope, info);
+                if(evt.hasOwnProperty(i)){
+                    evt[i].call(scope, info);
+                }
             }
         }
 
@@ -50,7 +52,9 @@ define([], function(){return function(config){
             onEvent.call(scope, name.join('_'), info);
         } else if (Object.prototype.toString.call(evt) === '[object Array]') {
             for (var i in onEvent) {
-                onEvent[i].call(scope, name.slice(1).join('_'), info);
+                if(onEvent.hasOwnProperty(i)){
+                    onEvent[i].call(scope, name.slice(1).join('_'), info);
+                }
             }
         }
     }

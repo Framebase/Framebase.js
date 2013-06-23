@@ -128,7 +128,9 @@ define(['fsstack/framebase/utils/async',
                                     } else {
                                         message_text += "We encountered the following errors in uploading your file:\n";
                                         for (var i in errors) {
-                                            message_text += '   * ' + errors[i] + "\n";
+                                            if(errors.hasOwnProperty(i)){
+                                                message_text += '   * ' + errors[i] + "\n";
+                                            }
                                         }
                                     }
 
@@ -138,7 +140,9 @@ define(['fsstack/framebase/utils/async',
 
 
                             for (var i in local_events['error']) {
-                                local_events['error'][i].apply(uploader_element, [{errors:response['errors'],fileName:fileName}]);
+                                if(local_events['error'].hasOwnProperty(i)){
+                                    local_events['error'][i].apply(uploader_element, [{errors:response['errors'],fileName:fileName}]);
+                                }
                             }
 
                             config.event(['upload', 'error'], {errors:response['errors'],fileName:fileName}, uploader_element);
@@ -164,7 +168,9 @@ define(['fsstack/framebase/utils/async',
                             }
 
                             for (var i in local_events['success']) {
-                                local_events['success'][i].apply(uploader_element, [{response:response,fileName:fileName}]);
+                                if(local_events['success'].hasOwnProperty(i)){
+                                    local_events['success'][i].apply(uploader_element, [{response:response,fileName:fileName}]);
+                                }
                             }
                             config.event(['upload', 'success'], {response:response,fileName:fileName}, uploader_element);
                         }

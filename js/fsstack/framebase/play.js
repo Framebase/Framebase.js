@@ -206,7 +206,9 @@ define(['jquery',
                             time: me.currentTime
                         }, me);
                         for (var i in local_events['play']) {
-                            local_events['play'][i].apply(me, []);
+                            if(local_events['play'].hasOwnProperty(i)){
+                                local_events['play'][i].apply(me, []);
+                            }
                         }
                         s_debounce();
                     }
@@ -218,7 +220,9 @@ define(['jquery',
                             time: me.currentTime
                         }, me);
                         for (var i in local_events['pause']) {
-                            local_events['pause'][i].apply(me, []);
+                            if(local_events['pause'].hasOwnProperty(i)){
+                                local_events['pause'][i].apply(me, []);
+                            }
                         }
                         s_debounce();
                         var played_seconds = me.currentTime - play_start_time;
@@ -232,7 +236,9 @@ define(['jquery',
                         has_played = false;
                         config.event(['video', 'stop'], {complete: true}, me);
                         for (var i in local_events['stop']) {
-                            local_events['stop'][i].apply(me, []);
+                            if(local_events['stop'].hasOwnProperty(i)){
+                                local_events['stop'][i].apply(me, []);
+                            }
                         }
                         var played_seconds = me.currentTime - play_start_time;
                         send_play(video_object.getAttribute('data-video'), played_seconds);
@@ -245,7 +251,9 @@ define(['jquery',
                         if (!has_ended && has_played) {
                             config.event(['video', 'stop'], {complete: false, time: me.currentTime}, me);
                             for (var i in local_events['stop']) {
-                                local_events['stop'][i].apply(me, []);
+                                if(local_events['stop'].hasOwnProperty(i)){
+                                    local_events['stop'][i].apply(me, []);
+                                }
                             }
                         }
                         s_debounce();

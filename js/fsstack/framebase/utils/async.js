@@ -21,8 +21,10 @@ define(['fsstack/framebase/utils/debug', 'fsstack/framebase/utils/validation'],
                 debug('page loaded, calling queued callbacks');
                 body_has_loaded = true;
                 for (var i in onload_callbacks) {
-                    debug('calling function', onload_callbacks[i]);
-                    onload_callbacks[i]();
+                    if(onload_callbacks.hasOwnProperty(i)){
+                        debug('calling function', onload_callbacks[i]);
+                        onload_callbacks[i]();
+                    }
                 }
                 onload_callbacks = [];
             }

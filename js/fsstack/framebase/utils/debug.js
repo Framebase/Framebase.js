@@ -5,13 +5,15 @@ define(['fsstack/framebase/utils/polyfills',
     var fn = function(){
         var args = [];
         for (var i in arguments) {
-            try {
-                if (polyfills.isElement(arguments[i])) {
-                    args.push(elements.get_html(arguments[i]));
-                } else {
-                    args.push(arguments[i].toString());
-                }
-            } catch (err) {}
+            if(arguments.hasOwnProperty(i)){
+                try {
+                    if (polyfills.isElement(arguments[i])) {
+                        args.push(elements.get_html(arguments[i]));
+                    } else {
+                        args.push(arguments[i].toString());
+                    }
+                } catch (err) {}
+            }
         }
 
         logging_history.push(args);
@@ -32,12 +34,14 @@ define(['fsstack/framebase/utils/polyfills',
         } else {
             var current_level_obj = {};
             for (var i in obj) {
-                if (typeof(obj[i]) === 'object') {
-                    current_level_obj[i] = expand_with_limit(obj[i], limit, stack_size + 1);
-                } else if (typeof(obj[i]) === 'function') {
-                } else if (i === '__proto__') {
-                } else {
-                    current_level_obj[i] = obj[i];
+                if(obj.hasOwnProperty(i)){
+                    if (typeof(obj[i]) === 'object') {
+                        current_level_obj[i] = expand_with_limit(obj[i], limit, stack_size + 1);
+                    } else if (typeof(obj[i]) === 'function') {
+                    } else if (i === '__proto__') {
+                    } else {
+                        current_level_obj[i] = obj[i];
+                    }
                 }
             }
             return current_level_obj;
